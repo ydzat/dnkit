@@ -2,9 +2,10 @@
 Test configuration for MCP Toolkit.
 """
 
-import pytest
 import asyncio
 from pathlib import Path
+
+import pytest
 
 
 # Test fixtures
@@ -23,4 +24,4 @@ def event_loop():
 
 
 # Async test support
-pytest_plugins = ['pytest_asyncio']
+pytest_plugins = ["pytest_asyncio"]

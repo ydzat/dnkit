@@ -706,7 +706,12 @@ dev = [
 dev = [
     { name = "bandit" },
     { name = "black" },
+    { name = "flake8" },
     { name = "isort" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
     { name = "safety" },
 ]
 
@@ -730,7 +735,12 @@ provides-extras = ["dev"]
 dev = [
     { name = "bandit", specifier = ">=1.8.5" },
     { name = "black", specifier = ">=25.1.0" },
+    { name = "flake8", specifier = ">=6.0.0" },
     { name = "isort", specifier = ">=6.0.1" },
+    { name = "mypy", specifier = ">=1.0.0" },
+    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", specifier = ">=0.21.0" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
     { name = "safety", specifier = ">=3.5.0" },
 ]
 

@@ -11,11 +11,11 @@ __email__ = "your.email@example.com"
 
 # Core exports
 from .core.interfaces import ModuleInterface, ServiceModule
-from .core.types import ToolDefinition, ToolCallRequest, ToolCallResponse
+from .core.types import ToolCallRequest, ToolCallResponse, ToolDefinition
 
 __all__ = [
     "ModuleInterface",
-    "ServiceModule", 
+    "ServiceModule",
     "ToolDefinition",
     "ToolCallRequest",
     "ToolCallResponse",

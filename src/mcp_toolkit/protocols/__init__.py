@@ -8,12 +8,12 @@ HTTP transport, JSON-RPC parsing, and message routing.
 from .base import ProtocolHandler
 from .http_handler import HTTPTransportHandler
 from .jsonrpc import JSONRPCProcessor
-from .router import RequestRouter
 from .middleware import MiddlewareChain
+from .router import RequestRouter
 
 __all__ = [
     "ProtocolHandler",
-    "HTTPTransportHandler", 
+    "HTTPTransportHandler",
     "JSONRPCProcessor",
     "RequestRouter",
     "MiddlewareChain",

@@ -26,7 +26,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        uv sync --dev
+        uv sync --group dev
     
     - name: Lint with flake8
       run: |
@@ -76,21 +76,11 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --group dev
     
     - name: Test MCP protocol compliance
       run: |
-        # 创建简单的MCP合规性测试脚本
-        uv run python -c "
-        import sys
-        sys.path.insert(0, 'src')
-        from mcp_toolkit.protocols.jsonrpc import JSONRPCProcessor
-        from mcp_toolkit.protocols.http_handler import HTTPTransportHandler
-        from mcp_toolkit.protocols.router import RequestRouter
-        from mcp_toolkit.protocols.middleware import MiddlewareChain
-        print('✅ MCP核心组件导入成功')
-        print('✅ 协议合规性基础检查通过')
-        "
+        uv run python scripts/test_mcp_compliance.py
 
   security:
     runs-on: ubuntu-latest
@@ -107,11 +97,10 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --group dev
     
     - name: Check for known security vulnerabilities
       run: |
-        uv pip install safety
         uv run safety check --json --output safety-report.json || true
         uv run safety check
 
@@ -131,7 +120,7 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --group dev
     
     - name: Build package
       run: |
