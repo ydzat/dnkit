@@ -7,11 +7,11 @@ and integration with JSON-RPC processor.
 
 import asyncio
 import logging
-from typing import Callable, Dict, List, Optional, Set
+from typing import Awaitable, Callable, Dict, List, Optional, Set
 
 from aiohttp import hdrs, web
 from aiohttp.web_request import Request
-from aiohttp.web_response import Response
+from aiohttp.web_response import Response, StreamResponse
 
 from .base import ProtocolError, ProtocolHandler
 from .jsonrpc import JSONRPCProcessor
@@ -131,7 +131,9 @@ class HTTPTransportHandler(ProtocolHandler):
         return response
 
     @web.middleware
-    async def _error_middleware(self, request: Request, handler: Callable) -> Response:
+    async def _error_middleware(
+        self, request: Request, handler: Callable[[Request], Awaitable[StreamResponse]]
+    ) -> StreamResponse:
         """Handle errors and convert to appropriate HTTP responses."""
         try:
             response = await handler(request)
@@ -149,8 +151,8 @@ class HTTPTransportHandler(ProtocolHandler):
 
     @web.middleware
     async def _logging_middleware(
-        self, request: Request, handler: Callable
-    ) -> Response:
+        self, request: Request, handler: Callable[[Request], Awaitable[StreamResponse]]
+    ) -> StreamResponse:
         """Log requests and responses."""
         start_time = asyncio.get_event_loop().time()
 
