@@ -500,3 +500,60 @@ Version:
 - 在实现过程中根据实际需求调整接口
 - 建立接口变更的评审机制
 - 制定接口文档的维护标准
+
+## 附录：服务模块接口（第四次迭代扩展）
+
+### 3.4 服务模块接口
+```
+interface ServiceModule extends ToolModule:
+  # 服务标识
+  get_module_info() -> ModuleInfo
+  get_service_namespace() -> string
+  get_supported_tools() -> List<ToolDefinition>
+  
+  # 服务生命周期（扩展自Module）
+  initialize(config: ModuleConfig, context: ServiceContext) -> Result<void>
+  shutdown() -> Result<void>
+  
+  # 服务能力
+  handle_tool_call(request: ToolCallRequest) -> ToolCallResponse
+  list_available_tools() -> List<ToolDefinition>
+  get_tool_schema(tool_name: string) -> JSONSchema | null
+  
+  # 配置管理（扩展）
+  reload_config(config: ModuleConfig) -> Result<void>
+  validate_config(config: ModuleConfig) -> ValidationResult
+
+# 扩展的模块信息
+ServiceModuleInfo extends ModuleInfo:
+  - module_id: string
+  - namespace: string      # 工具命名空间前缀
+  - capabilities: List<Capability>
+
+ServiceContext:
+  - platform_version: string
+  - shared_services: SharedServices
+  - event_bus: EventBus
+  - logger: Logger
+  - config_manager: ConfigManager
+  - metrics_collector: MetricsCollector
+
+Capability:
+  - type: CapabilityType
+  - version: string
+  - metadata: Map<string, any>
+
+CapabilityType:
+  - FILE_OPERATIONS
+  - TERMINAL_EXECUTION
+  - NETWORK_ACCESS
+  - CODE_ANALYSIS
+  - VERSION_CONTROL
+  - SEARCH_INDEXING
+  - CONTEXT_ANALYSIS
+  - AI_ASSISTANCE
+  - IMAGE_PROCESSING
+  - AUDIO_PROCESSING
+  - DATA_TRANSFORMATION
+  - CUSTOM
+```
