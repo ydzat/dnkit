@@ -1,0 +1,30 @@
+server:
+  host: "127.0.0.1"
+  port: 8080
+  debug: true
+
+logging:
+  level: "DEBUG"
+  console: true
+  file: "logs/mcp-toolkit.log"
+
+tools:
+  basic_tools:
+    enabled: true
+    max_file_size_mb: 10
+    allowed_paths:
+      - "./data"
+      - "./workspace"
+
+services:
+  registry:
+    auto_discovery: true
+    health_check_interval: 30
+
+security:
+  allowed_origins:
+    - "http://localhost:*"
+    - "http://127.0.0.1:*"
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
