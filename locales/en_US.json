@@ -1,0 +1,53 @@
+{
+  "core": {
+    "errors": {
+      "module_not_found": "Module not found: {module_name}",
+      "tool_not_found": "Tool not found: {tool_name}",
+      "invalid_parameters": "Invalid parameters: {details}",
+      "execution_failed": "Execution failed: {error}",
+      "permission_denied": "Permission denied: {action}",
+      "rate_limit_exceeded": "Rate limit exceeded: {limit}",
+      "service_unavailable": "Service unavailable: {service}",
+      "validation_error": "Validation error: {field}"
+    },
+    "messages": {
+      "module_loaded": "Module loaded: {module_name}",
+      "module_unloaded": "Module unloaded: {module_name}",
+      "tool_executed": "Tool executed: {tool_name}",
+      "service_started": "Service started: {service_name}",
+      "service_stopped": "Service stopped: {service_name}",
+      "request_received": "Request received: {method}",
+      "response_sent": "Response sent: {status}"
+    }
+  },
+  "protocols": {
+    "jsonrpc": {
+      "invalid_request": "Invalid JSON-RPC request",
+      "method_not_found": "Method not found: {method}",
+      "invalid_params": "Invalid parameters",
+      "internal_error": "Internal error",
+      "parse_error": "Parse error"
+    },
+    "http": {
+      "invalid_content_type": "Invalid content type: {content_type}",
+      "method_not_allowed": "Method not allowed: {method}",
+      "cors_blocked": "CORS blocked",
+      "health_check_ok": "Health check OK",
+      "server_starting": "HTTP server starting..."
+    }
+  },
+  "tools": {
+    "file": {
+      "file_not_found": "File not found: {path}",
+      "permission_denied": "File permission denied: {path}",
+      "read_success": "File read success: {path}",
+      "write_success": "File write success: {path}"
+    },
+    "network": {
+      "connection_failed": "Connection failed: {host}",
+      "timeout": "Connection timeout: {timeout}s",
+      "request_sent": "Request sent: {url}",
+      "response_received": "Response received: {status}"
+    }
+  }
+}

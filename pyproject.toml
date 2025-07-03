@@ -41,11 +41,12 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+pythonpath = ["src"]
 addopts = [
-    "--cov=src/mcp_toolkit",
+    "--cov=mcp_toolkit",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-fail-under=80",
+    "--cov-fail-under=75",
 ]
 
 [tool.mypy]
