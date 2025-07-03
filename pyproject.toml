@@ -73,3 +73,11 @@ exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
+
+[dependency-groups]
+dev = [
+    "bandit>=1.8.5",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "safety>=3.5.0",
+]
