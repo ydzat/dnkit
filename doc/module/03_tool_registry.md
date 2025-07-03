@@ -21,23 +21,23 @@ graph TD
     A --> D[工具调用管理器]
     A --> E[生命周期管理器]
     A --> F[权限控制器]
-    
+
     B --> B1[基础工具注册器]
     B --> B2[ContextEngine工具注册器]
     B --> B3[扩展工具注册器]
-    
+
     C --> C1[工具索引器]
     C --> C2[工具搜索引擎]
     C --> C3[工具分类器]
-    
+
     D --> D1[调用路由器]
     D --> D2[执行监控器]
     D --> D3[结果缓存器]
-    
+
     E --> E1[启动管理器]
     E --> E2[健康检查器]
     E --> E3[故障恢复器]
-    
+
     F --> F1[访问控制器]
     F --> F2[权限验证器]
     F --> F3[安全审计器]
@@ -52,12 +52,12 @@ interface ToolRegistry:
   register_tool_module(module: ToolModule, config: RegistrationConfig) -> Result<RegistrationId>
   unregister_tool_module(registration_id: RegistrationId) -> Result<void>
   update_tool_module(registration_id: RegistrationId, module: ToolModule) -> Result<void>
-  
+
   # 单个工具注册
   register_tool(definition: ToolDefinition, handler: ToolHandler) -> Result<ToolId>
   unregister_tool(tool_id: ToolId) -> Result<void>
   update_tool(tool_id: ToolId, definition: ToolDefinition) -> Result<void>
-  
+
   # 注册状态查询
   get_registration_info(registration_id: RegistrationId) -> RegistrationInfo | null
   list_registered_modules() -> List<RegistrationInfo>
@@ -119,14 +119,14 @@ ToolRequirements:
 interface ToolHandler:
   # 工具执行
   execute(params: ToolParameters, context: ExecutionContext) -> Result<ToolResult>
-  
+
   # 参数验证
   validate_parameters(params: ToolParameters) -> Result<void>
-  
+
   # 工具状态
   get_status() -> ToolHandlerStatus
   is_ready() -> boolean
-  
+
   # 生命周期
   initialize(config: ToolConfig) -> Result<void>
   cleanup() -> Result<void>
@@ -163,12 +163,12 @@ interface ToolIndexer:
   rebuild_index() -> Result<void>
   update_index(tool: ToolDefinition) -> Result<void>
   remove_from_index(tool_name: string) -> Result<void>
-  
+
   # 索引查询
   search_tools(query: ToolSearchQuery) -> List<ToolDefinition>
   get_tool_by_name(name: string) -> ToolDefinition | null
   list_tools_by_category(category: ToolCategory) -> List<ToolDefinition>
-  
+
   # 索引统计
   get_index_stats() -> IndexStats
 
@@ -194,13 +194,13 @@ IndexStats:
 interface ToolRecommendationEngine:
   # 基于上下文推荐
   recommend_by_context(context: RecommendationContext) -> List<ToolRecommendation>
-  
+
   # 基于历史推荐
   recommend_by_history(user_id: string, limit: number) -> List<ToolRecommendation>
-  
+
   # 基于相似性推荐
   recommend_similar_tools(tool_name: string, limit: number) -> List<ToolRecommendation>
-  
+
   # 推荐反馈
   record_tool_usage(tool_name: string, context: RecommendationContext, satisfaction: number) -> void
 
@@ -224,11 +224,11 @@ interface ToolCategorizer:
   # 自动分类
   categorize_tool(definition: ToolDefinition) -> ToolCategory
   suggest_categories(definition: ToolDefinition) -> List<ToolCategory>
-  
+
   # 分类管理
   create_custom_category(name: string, description: string) -> Result<ToolCategory>
   update_category(category: ToolCategory, metadata: CategoryMetadata) -> Result<void>
-  
+
   # 分类统计
   get_category_stats() -> Map<ToolCategory, CategoryStats>
 
@@ -251,10 +251,10 @@ CategoryStats:
 interface ToolCallRouter:
   # 路由决策
   route_call(tool_name: string, context: ExecutionContext) -> ToolHandler | null
-  
+
   # 负载均衡
   select_handler_instance(tool_name: string, instances: List<ToolHandler>) -> ToolHandler
-  
+
   # 路由策略
   set_routing_strategy(tool_name: string, strategy: RoutingStrategy) -> void
   get_routing_stats(tool_name: string) -> RoutingStats
@@ -277,7 +277,7 @@ interface ExecutionMonitor:
   update_execution_status(execution_id: ExecutionId, status: ExecutionStatus) -> void
   complete_execution(execution_id: ExecutionId, result: ToolResult) -> void
   fail_execution(execution_id: ExecutionId, error: Error) -> void
-  
+
   # 监控查询
   get_active_executions() -> List<ExecutionInfo>
   get_execution_history(filter: ExecutionFilter) -> List<ExecutionInfo>
@@ -309,12 +309,12 @@ interface ConcurrencyController:
   # 并发限制
   acquire_execution_slot(tool_name: string) -> Result<ExecutionSlot>
   release_execution_slot(slot: ExecutionSlot) -> void
-  
+
   # 队列管理
   enqueue_execution(request: ExecutionRequest) -> QueuePosition
   dequeue_execution() -> ExecutionRequest | null
   get_queue_status() -> QueueStatus
-  
+
   # 限流控制
   check_rate_limit(user_id: string, tool_name: string) -> boolean
   update_rate_limit_config(config: RateLimitConfig) -> void
@@ -347,11 +347,11 @@ interface StartupManager:
   start_all_tools() -> Result<void>
   start_tool_module(module_name: string) -> Result<void>
   start_tool(tool_name: string) -> Result<void>
-  
+
   # 启动策略
   set_startup_order(order: List<string>) -> void
   set_startup_dependencies(dependencies: Map<string, List<string>>) -> void
-  
+
   # 启动状态
   get_startup_status() -> StartupStatus
   is_startup_complete() -> boolean
@@ -370,14 +370,14 @@ interface HealthChecker:
   # 健康检查
   check_tool_health(tool_name: string) -> ToolHealthStatus
   check_all_tools_health() -> Map<string, ToolHealthStatus>
-  
+
   # 自动检查
   start_periodic_health_checks(interval: number) -> void
   stop_periodic_health_checks() -> void
-  
+
   # 健康事件
   on_health_change(callback: HealthChangeCallback) -> SubscriptionId
-  
+
   # 健康策略
   set_health_check_config(tool_name: string, config: HealthCheckConfig) -> void
 
@@ -405,11 +405,11 @@ interface FailureRecoveryManager:
   # 故障检测
   detect_failure(tool_name: string, error: Error) -> FailureType
   classify_failure(error: Error) -> FailureClassification
-  
+
   # 恢复策略
   attempt_recovery(tool_name: string, failure_type: FailureType) -> Result<void>
   set_recovery_strategy(tool_name: string, strategy: RecoveryStrategy) -> void
-  
+
   # 故障历史
   get_failure_history(tool_name: string) -> List<FailureRecord>
   get_recovery_stats() -> RecoveryStats
@@ -445,12 +445,12 @@ interface AccessController:
   # 权限检查
   check_tool_access(user_info: UserInfo, tool_name: string) -> boolean
   check_operation_permission(user_info: UserInfo, operation: Operation) -> boolean
-  
+
   # 权限管理
   grant_permission(user_id: string, permission: Permission) -> Result<void>
   revoke_permission(user_id: string, permission: Permission) -> Result<void>
   list_user_permissions(user_id: string) -> List<Permission>
-  
+
   # 角色管理
   assign_role(user_id: string, role: Role) -> Result<void>
   create_role(role: Role) -> Result<void>
@@ -479,11 +479,11 @@ interface SecurityAuditor:
   # 审计日志（基于Logloom）
   log_access_attempt(user_info: UserInfo, operation: Operation, result: AccessResult) -> void
   log_permission_change(admin_user: UserInfo, target_user: string, change: PermissionChange) -> void
-  
+
   # 审计查询
   get_audit_logs(filter: AuditFilter) -> List<AuditRecord>
   get_security_report(time_range: TimeRange) -> SecurityReport
-  
+
   # 异常检测
   detect_suspicious_activity(user_id: string) -> List<SecurityAlert>
   set_anomaly_detection_config(config: AnomalyDetectionConfig) -> void
@@ -517,7 +517,7 @@ tool_registry:
     enabled: true
     scan_paths: ["/tools", "/plugins"]
     scan_interval: 300
-  
+
   # 工具分类
   categories:
     file_operations:
@@ -529,14 +529,14 @@ tool_registry:
     context_management:
       description: "上下文管理和AI辅助工具"
       max_concurrent_calls: 10
-  
+
   # 并发控制
   concurrency:
     global_max_concurrent: 100
     per_tool_max_concurrent: 10
     queue_size: 1000
     execution_timeout: 300
-  
+
   # 健康检查
   health_check:
     enabled: true
@@ -556,7 +556,7 @@ access_control:
       action: "execute"
     - resource: "tool:search:*"
       action: "execute"
-  
+
   # 角色定义
   roles:
     developer:
@@ -565,13 +565,13 @@ access_control:
           action: "execute"
         - resource: "tool:file_operations:*"
           action: "execute"
-    
+
     admin:
       inherits_from: ["developer"]
       permissions:
         - resource: "system:*"
           action: "*"
-  
+
   # 安全设置
   security:
     enable_audit: true

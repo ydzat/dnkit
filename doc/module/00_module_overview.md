@@ -19,34 +19,34 @@ graph TD
     A --> C[服务注册模块]
     A --> D[配置管理模块]
     A --> E[日志监控模块]
-    
+
     B --> B1[HTTP处理器]
     B --> B2[WebSocket处理器]
     B --> B3[JSON-RPC处理器]
-    
+
     C --> C1[服务路由层]
     C --> C2[服务注册中心]
     C --> C3[服务生命周期管理器]
-    
+
     C1 --> F[基础工具服务模块]
     C1 --> G[ContextEngine服务模块]
     C1 --> H[扩展服务模块]
-    
+
     F --> F1[文件操作工具]
     F --> F2[终端执行工具]
     F --> F3[搜索工具]
     F --> F4[网络请求工具]
     F --> F5[代码分析工具]
     F --> F6[版本控制工具]
-    
+
     G --> G1[上下文分析]
     G --> G2[智能推荐]
     G --> G3[知识检索]
-    
+
     H --> H1[AI能力服务]
     H --> H2[第三方工具集]
     H --> H3[企业定制服务]
-    
+
     subgraph "平台基础设施"
         I[事件总线]
         J[共享服务]
@@ -54,7 +54,7 @@ graph TD
         L[缓存系统]
         M[资源管理]
     end
-    
+
     F -.-> I
     G -.-> I
     H -.-> I
@@ -141,7 +141,7 @@ sequenceDiagram
     participant P as 协议处理模块
     participant R as 工具注册模块
     participant T as 工具模块
-    
+
     P->>R: 查找工具(tool_id)
     R->>P: 返回工具实例
     P->>T: 调用工具(params)

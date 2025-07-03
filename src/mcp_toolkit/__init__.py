@@ -1,5 +1,4 @@
-"""
-MCP Toolkit - A modular MCP (Model Context Protocol) toolkit.
+"""MCP Toolkit - A modular MCP (Model Context Protocol) toolkit.
 
 This package provides a comprehensive set of tools and services
 for building MCP-compliant applications.

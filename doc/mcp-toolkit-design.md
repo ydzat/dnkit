@@ -19,35 +19,35 @@ graph TD
     A[VSCode Copilot Agent] -->|标准MCP协议| C[MCP工具集服务器]
     B[DevNexusLite Multi-Agent] -->|标准MCP协议| C
     D[任意AI模型/系统] -->|标准MCP协议| C
-    
+
     C --> E[MCP协议层]
     C --> F[工具注册中心]
-    
+
     E --> G[HTTP Server]
     E --> H[WebSocket Server]
     E --> I[JSON-RPC协议]
-    
+
     F --> J[基础工具集]
     F --> K[上下文引擎工具集]
-    
+
     J --> J1[文件操作工具]
     J --> J2[终端执行工具]
     J --> J3[搜索工具]
     J --> J4[网络请求工具]
     J --> J5[代码分析工具]
     J --> J6[版本控制工具]
-    
+
     K --> K1[上下文存储工具]
     K --> K2[上下文检索工具]
     K --> K3[收敛检测工具]
     K --> K4[目标分析工具]
     K --> K5[混合推理工具]
-    
+
     K --> L[ContextEngine核心]
     L --> M[混合算法引擎]
     L --> N[向量存储系统]
     L --> O[LLM推理层]
-    
+
     N --> P[ChromaDB]
     N --> Q[嵌入向量管理]
     C --> R[SQLite元数据]
@@ -64,24 +64,24 @@ graph TD
         A5[配置管理]
         A6[日志监控]
     end
-    
+
     subgraph "客户端设备（任意位置）"
         B1[VSCode + Copilot<br/>Windows 11]
         B2[DevNexusLite<br/>任意AI模型]
         B3[Claude/GPT/Qwen等<br/>任意AI系统]
         B4[远程开发环境<br/>SSH连接]
     end
-    
+
     subgraph "可选备份部署"
         C1[轻量级MCP服务器<br/>Debian Server]
         C2[数据备份存储]
     end
-    
+
     B1 -->|标准MCP over HTTP| A1
     B2 -->|标准MCP协议| A1
     B3 -->|标准MCP协议| A1
     B4 -->|SSH隧道 + MCP| A1
-    
+
     A1 -.->|数据同步| C1
     A3 -.->|定期备份| C2
 ```
@@ -102,20 +102,20 @@ graph TD
 graph TD
     A[工具注册中心] --> B[基础工具管理器]
     A --> C[ContextEngine工具管理器]
-    
+
     B --> B1[文件操作工具]
     B --> B2[终端执行工具]
     B --> B3[搜索工具]
     B --> B4[网络请求工具]
     B --> B5[代码分析工具]
     B --> B6[版本控制工具]
-    
+
     C --> C1[上下文存储工具]
     C --> C2[上下文检索工具]
     C --> C3[收敛检测工具]
     C --> C4[目标分析工具]
     C --> C5[混合推理工具]
-    
+
     C --> D[ContextEngine适配器]
     D --> E[现有ContextEngine实现]
 ```
@@ -210,37 +210,37 @@ graph TD
     A --> F[代码分析类]
     A --> G[版本控制类]
     A --> H[上下文管理类]
-    
+
     B --> B1[读取文件]
     B --> B2[写入文件]
     B --> B3[目录操作]
     B --> B4[文件搜索]
-    
+
     C --> C1[执行命令]
     C --> C2[后台进程]
     C --> C3[终端状态]
     C --> C4[命令历史]
-    
+
     D --> D1[文本搜索]
     D --> D2[语义搜索]
     D --> D3[代码搜索]
     D --> D4[项目搜索]
-    
+
     E --> E1[HTTP请求]
     E --> E2[API调用]
     E --> E3[内容获取]
     E --> E4[文件传输]
-    
+
     F --> F1[语法分析]
     F --> F2[错误检测]
     F --> F3[代码补全]
     F --> F4[重构建议]
-    
+
     G --> G1[Git操作]
     G --> G2[分支管理]
     G --> G3[冲突解决]
     G --> G4[历史查询]
-    
+
     H --> H1[上下文存储]
     H --> H2[相似检索]
     H --> H3[智能分析]
@@ -254,35 +254,35 @@ graph TD
     A[MCP工具注册中心] --> B[工具接口规范]
     A --> C[工具生命周期管理]
     A --> D[工具分类管理]
-    
+
     B --> B1[标准MCP工具接口]
     B --> B2[参数验证]
     B --> B3[返回值标准化]
     B --> B4[错误处理规范]
-    
+
     C --> C1[工具注册]
     C --> C2[工具发现]
     C --> C3[工具调用]
     C --> C4[工具卸载]
-    
+
     D --> D1[基础工具组]
     D --> D2[ContextEngine工具组]
     D --> D3[扩展工具组]
-    
+
     D1 --> E1[file_operations]
     D1 --> E2[terminal_operations]
     D1 --> E3[search_operations]
     D1 --> E4[network_operations]
     D1 --> E5[code_analysis]
     D1 --> E6[version_control]
-    
+
     D2 --> F1[context_store]
     D2 --> F2[context_search]
     D2 --> F3[convergence_check]
     D2 --> F4[goal_alignment]
     D2 --> F5[template_transition]
     D2 --> F6[hybrid_decision]
-    
+
     D2 --> G[ContextEngine适配器]
     G --> H[现有ContextEngine实现]
 ```
@@ -303,11 +303,11 @@ sequenceDiagram
     participant BT as 基础工具
     participant CA as ContextEngine适配器
     participant CE as ContextEngine核心
-    
+
     C->>M: 标准MCP工具调用请求
     M->>R: 查找工具处理器
     R->>M: 返回工具实例
-    
+
     alt 基础工具调用
         M->>BT: 执行基础工具
         BT->>M: 返回执行结果
@@ -318,7 +318,7 @@ sequenceDiagram
         CE->>CA: 返回ContextEngine结果
         CA->>M: 转换为标准MCP响应
     end
-    
+
     M->>C: 返回标准MCP响应
 ```
 
@@ -404,7 +404,7 @@ storage:
     type: "chroma"
     persist_directory: "./chroma_data"
     collection_prefix: "mcp_"
-  
+
   metadata_db:
     type: "sqlite"
     path: "./data/mcp.db"

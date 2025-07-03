@@ -1,6 +1,6 @@
-"""
-国际化(i18n)支持系统
-为MCP工具集提供多语言支持
+"""国际化(i18n)支持系统.
+
+为MCP工具集提供多语言支持。
 """
 
 import json
@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional, Union
 
 @dataclass
 class I18nConfig:
-    """国际化配置"""
+    """国际化配置。"""
 
     default_locale: str = "zh_CN"
     fallback_locale: str = "en_US"
@@ -21,9 +21,14 @@ class I18nConfig:
 
 
 class TranslationManager:
-    """翻译管理器"""
+    """翻译管理器。"""
 
     def __init__(self, config: Optional[I18nConfig] = None):
+        """初始化翻译管理器。
+
+        Args:
+            config: 国际化配置，如果为None则使用默认配置。
+        """
         self.config = config or I18nConfig()
         self.current_locale = self.config.default_locale
         self.translations: Dict[str, Dict[str, Any]] = {}
@@ -31,7 +36,7 @@ class TranslationManager:
         self._load_translations()
 
     def _load_translations(self) -> None:
-        """加载翻译文件"""
+        """加载翻译文件。"""
         locale_path = Path(self.config.locale_dir)
 
         # 检查当前语言文件
@@ -53,7 +58,7 @@ class TranslationManager:
                 self.fallback_translations = json.load(f)
 
     def _create_default_translations(self) -> None:
-        """创建默认翻译文件"""
+        """创建默认翻译文件。"""
         locale_dir = Path(self.config.locale_dir)
         locale_dir.mkdir(parents=True, exist_ok=True)
 
@@ -187,14 +192,13 @@ class TranslationManager:
             self.fallback_translations = en_translations
 
     def set_locale(self, locale: str) -> None:
-        """设置当前语言"""
+        """设置当前语言。"""
         self.current_locale = locale
         if self.config.auto_reload:
             self._load_translations()
 
     def get_text(self, key: str, **kwargs: Any) -> str:
-        """
-        获取翻译文本
+        """获取翻译文本。
 
         Args:
             key: 翻译键，使用点号分隔，如 'core.errors.module_not_found'
@@ -225,7 +229,7 @@ class TranslationManager:
             return text
 
     def _get_nested_value(self, data: Dict[str, Any], keys: list) -> Optional[str]:
-        """从嵌套字典中获取值"""
+        """从嵌套字典中获取值。"""
         current = data
         for key in keys:
             if isinstance(current, dict) and key in current:
@@ -236,7 +240,7 @@ class TranslationManager:
         return current if isinstance(current, str) else None
 
     def add_translation(self, locale: str, key: str, text: str) -> None:
-        """添加翻译"""
+        """添加翻译。"""
         if locale not in self.translations:
             self.translations[locale] = {}
 
@@ -253,7 +257,7 @@ class TranslationManager:
         current[keys[-1]] = text
 
     def get_available_locales(self) -> list:
-        """获取可用的语言列表"""
+        """获取可用的语言列表。"""
         locale_dir = Path(self.config.locale_dir)
         if not locale_dir.exists():
             return [self.config.default_locale, self.config.fallback_locale]
@@ -270,26 +274,26 @@ _translation_manager = TranslationManager()
 
 
 def set_locale(locale: str) -> None:
-    """设置当前语言的便捷函数"""
+    """设置当前语言的便捷函数。"""
     _translation_manager.set_locale(locale)
 
 
 def get_text(key: str, **kwargs: Any) -> str:
-    """获取翻译文本的便捷函数"""
+    """获取翻译文本的便捷函数。"""
     return _translation_manager.get_text(key, **kwargs)
 
 
 def _(key: str, **kwargs: Any) -> str:
-    """获取翻译文本的简短别名"""
+    """获取翻译文本的简短别名。"""
     return get_text(key, **kwargs)
 
 
 def configure_i18n(config: I18nConfig) -> None:
-    """配置国际化系统"""
+    """配置国际化系统。"""
     global _translation_manager
     _translation_manager = TranslationManager(config)
 
 
 def get_available_locales() -> list:
-    """获取可用语言列表"""
+    """获取可用语言列表。"""
     return _translation_manager.get_available_locales()

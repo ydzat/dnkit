@@ -1,0 +1,123 @@
+# Pre-commit hooks配置 - 完整的代码质量检查流程
+# 安装: uv add --dev pre-commit && uv run pre-commit install
+repos:
+  # Black - Python代码格式化工具
+  - repo: https://github.com/psf/black
+    rev: '25.1.0'  # 使用最新稳定版本
+    hooks:
+      - id: black
+        args: [--check, --diff]  # 检查模式，显示差异但不修改文件
+        files: ^(src/|tests/).*\.py$
+
+  # isort - Python import排序工具
+  - repo: https://github.com/pycqa/isort
+    rev: '5.13.2'
+    hooks:
+      - id: isort
+        args: [--check-only, --diff, --profile, black]  # 检查模式，兼容black
+        files: ^(src/|tests/).*\.py$
+
+  # 基本文件检查
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: debug-statements  # 检查调试语句
+
+  # Python代码质量检查 - flake8
+  - repo: https://github.com/pycqa/flake8
+    rev: '7.1.1'
+    hooks:
+      - id: flake8
+        additional_dependencies: [flake8-docstrings, flake8-bugbear, flake8-comprehensions]
+        args: [
+          "--max-line-length=88",
+          "--extend-ignore=E203,W503,E722,F401,F841,E501,D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D212,D415,C901",
+          "--exclude=.git,__pycache__,build,dist,.venv",
+          "--per-file-ignores=tests/*:D",
+          "--docstring-convention=google"
+        ]
+        files: ^(src/|tests/).*\.py$
+
+  # 类型检查 - mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-PyYAML, types-aiofiles]
+        args: [
+          --ignore-missing-imports,
+          --disallow-untyped-defs,
+          --no-implicit-optional,
+          --warn-redundant-casts,
+          --warn-unused-ignores,
+          --show-error-codes
+        ]
+        files: ^src/.*\.py$
+
+  # 安全检查 - bandit
+  - repo: https://github.com/pycqa/bandit
+    rev: '1.8.5'
+    hooks:
+      - id: bandit
+        args: ["-r"]
+        files: ^src/.*\.py$
+
+  # 本地检查工具
+  - repo: local
+    hooks:
+      # 依赖安全检查 - safety
+      - id: safety
+        name: safety
+        description: "Safety: 检查已知的安全漏洞"
+        entry: uv run safety
+        args: [scan]
+        language: system
+        pass_filenames: false
+        stages: [manual]  # 手动运行
+
+      # 测试检查 (仅在push时运行)
+      - id: pytest-check
+        name: pytest-check
+        description: "运行测试套件"
+        entry: uv run pytest
+        args: [--maxfail=3, -x, --tb=short]
+        language: system
+        pass_filenames: false
+        stages: [pre-push]  # 只在push时运行测试
+
+      # 测试覆盖率检查
+      - id: coverage-check
+        name: coverage-check
+        description: "检查测试覆盖率"
+        entry: uv run pytest
+        args: [--cov=mcp_toolkit, --cov-report=term-missing, --cov-fail-under=75]
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+# 配置选项
+default_language_version:
+  python: python3.12
+
+default_stages: [pre-commit]  # 默认在commit时运行
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [safety, pytest-check, coverage-check]  # CI环境跳过某些检查
+  submodules: false

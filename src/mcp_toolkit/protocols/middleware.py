@@ -18,7 +18,9 @@ class Middleware(ABC):
 
     @abstractmethod
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
+        self,
+        request: ToolCallRequest,
+        next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]],
     ) -> ToolCallResponse:
         """Process request and call next handler in chain."""
         pass
@@ -33,7 +35,9 @@ class LoggingMiddleware(Middleware):
         self.logger = logger or logging.getLogger(__name__)
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
+        self,
+        request: ToolCallRequest,
+        next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]],
     ) -> ToolCallResponse:
         """Log request and response."""
         start_time = time.time()
@@ -77,7 +81,9 @@ class ValidationMiddleware(Middleware):
         self.required_fields = required_fields or ["tool_name"]
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
+        self,
+        request: ToolCallRequest,
+        next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]],
     ) -> ToolCallResponse:
         """Validate request before processing."""
         # Check required fields
@@ -126,7 +132,9 @@ class RateLimitingMiddleware(Middleware):
         self._lock = asyncio.Lock()
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
+        self,
+        request: ToolCallRequest,
+        next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]],
     ) -> ToolCallResponse:
         """Apply rate limiting based on session ID."""
         session_id = request.session_id or "default"
@@ -166,7 +174,9 @@ class PermissionMiddleware(Middleware):
         self.permission_checker = permission_checker
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
+        self,
+        request: ToolCallRequest,
+        next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]],
     ) -> ToolCallResponse:
         """Check permissions before tool execution."""
         if self.permission_checker:
@@ -209,14 +219,18 @@ class MiddlewareChain:
         ]
 
     async def process(
-        self, request: ToolCallRequest, final_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
+        self,
+        request: ToolCallRequest,
+        final_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]],
     ) -> ToolCallResponse:
         """Process request through middleware chain."""
         if not self.middlewares:
             return await final_handler(request)
 
         # Create middleware chain
-        async def create_handler(index: int) -> Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]:
+        async def create_handler(
+            index: int,
+        ) -> Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]:
             if index >= len(self.middlewares):
                 return final_handler
 

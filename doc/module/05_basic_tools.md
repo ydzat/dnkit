@@ -17,27 +17,27 @@ graph TD
     A[基础工具模块] --> B[PRIMARY分类]
     A --> C[SECONDARY分类]
     A --> D[CUSTOM分类]
-    
+
     B --> B1[file_operations]
     B --> B2[terminal]
     B --> B3[network]
     B --> B4[code_analysis]
     B --> B5[version_control]
     B --> B6[search]
-    
+
     C --> C1[context_management]
     C --> C2[ai_assistance]
     C --> C3[data_processing]
-    
+
     B1 --> B1a[read_file]
     B1 --> B1b[write_file]
     B1 --> B1c[list_files]
     B1 --> B1d[create_directory]
-    
+
     B2 --> B2a[run_command]
     B2 --> B2b[get_environment]
     B2 --> B2c[set_working_directory]
-    
+
     B3 --> B3a[http_request]
     B3 --> B3b[websocket_connect]
     B3 --> B3c[dns_lookup]
@@ -52,15 +52,15 @@ interface BaseTool:
   get_definition() -> ToolDefinition
   get_name() -> string
   get_version() -> string
-  
+
   # 执行控制
   execute(request: ToolExecutionRequest) -> ToolExecutionResult
   validate_parameters(params: Map<string, any>) -> ValidationResult
-  
+
   # 状态管理
   get_status() -> ToolStatus
   is_available() -> boolean
-  
+
   # 资源管理
   estimate_resources(params: Map<string, any>) -> ResourceEstimate
   cleanup() -> Result<void>
@@ -103,12 +103,12 @@ interface ParameterValidator:
   validate_type(value: any, expected_type: string) -> boolean
   validate_range(value: number, min: number, max: number) -> boolean
   validate_pattern(value: string, pattern: string) -> boolean
-  
+
   # 安全验证
   validate_path(path: string, allowed_paths: List<string>) -> boolean
   validate_command(command: string, allowed_commands: List<string>) -> boolean
   validate_url(url: string, allowed_domains: List<string>) -> boolean
-  
+
   # 自定义验证
   register_validator(name: string, validator: CustomValidator) -> void
   remove_validator(name: string) -> void
@@ -141,7 +141,7 @@ ToolDefinition:
   description: "读取指定文件的内容，支持文本和二进制文件"
   category: "file_operations"
   version: "1.0.0"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -169,7 +169,7 @@ ToolDefinition:
         minimum: 1
         description: "结束行号（可选）"
     required: ["path"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -201,7 +201,7 @@ ToolDefinition:
   name: "write_file"
   display_name: "写入文件"
   description: "写入内容到指定文件，支持创建新文件和覆盖现有文件"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -230,7 +230,7 @@ ToolDefinition:
         default: "644"
         description: "文件权限（Unix格式）"
     required: ["path", "content"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -245,7 +245,7 @@ ToolDefinition:
   name: "list_files"
   display_name: "列出文件"
   description: "列出目录中的文件和子目录"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -285,7 +285,7 @@ ToolDefinition:
         enum: ["asc", "desc"]
         default: "asc"
     required: ["path"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -314,7 +314,7 @@ ToolDefinition:
   name: "run_command"
   display_name: "执行命令"
   description: "在终端中执行命令并返回结果"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -351,7 +351,7 @@ ToolDefinition:
         type: "string"
         description: "标准输入内容"
     required: ["command"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -380,7 +380,7 @@ ToolDefinition:
   name: "http_request"
   display_name: "HTTP请求"
   description: "发送HTTP/HTTPS请求并返回响应"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -426,7 +426,7 @@ ToolDefinition:
           password: { type: "string" }
           token: { type: "string" }
     required: ["url"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -447,7 +447,7 @@ ToolDefinition:
   name: "analyze_code"
   display_name: "代码分析"
   description: "分析代码文件的结构、语法和质量"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -472,7 +472,7 @@ ToolDefinition:
         default: "basic"
         description: "分析深度"
     required: ["file_path"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -510,7 +510,7 @@ ToolDefinition:
   name: "git_status"
   display_name: "Git状态查询"
   description: "获取Git仓库的当前状态信息"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -527,7 +527,7 @@ ToolDefinition:
         default: false
         description: "是否使用机器可读格式"
     required: []
-  
+
   output_schema:
     type: "object"
     properties:
@@ -551,7 +551,7 @@ ToolDefinition:
   name: "git_log"
   display_name: "Git提交历史"
   description: "获取Git仓库的提交历史记录"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -583,7 +583,7 @@ ToolDefinition:
         enum: ["full", "oneline", "short", "medium"]
         default: "medium"
     required: []
-  
+
   output_schema:
     type: "object"
     properties:
@@ -610,7 +610,7 @@ ToolDefinition:
   name: "file_search"
   display_name: "文件搜索"
   description: "在指定目录中搜索文件"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -653,7 +653,7 @@ ToolDefinition:
         maximum: 10000
         default: 1000
     required: ["pattern"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -679,7 +679,7 @@ ToolDefinition:
   name: "content_search"
   display_name: "内容搜索"
   description: "在文件内容中搜索指定文本"
-  
+
   input_schema:
     type: "object"
     properties:
@@ -723,7 +723,7 @@ ToolDefinition:
         maximum: 10000
         default: 1000
     required: ["query"]
-  
+
   output_schema:
     type: "object"
     properties:
@@ -754,12 +754,12 @@ interface ToolCache:
   set(key: string, value: any, ttl: number) -> void
   invalidate(key: string) -> void
   clear(pattern: string) -> void
-  
+
   # 缓存策略
   should_cache(tool_name: string, params: Map<string, any>) -> boolean
   generate_cache_key(tool_name: string, params: Map<string, any>) -> string
   get_ttl(tool_name: string, result_size: number) -> number
-  
+
   # 缓存统计
   get_hit_rate() -> number
   get_size() -> number
@@ -786,15 +786,15 @@ interface ConcurrencyManager:
   # 并发限制
   acquire_slot(tool_name: string, priority: Priority) -> SlotToken | null
   release_slot(token: SlotToken) -> void
-  
+
   # 队列管理
   enqueue_request(request: ToolExecutionRequest) -> QueuePosition
   get_queue_status() -> QueueStatus
-  
+
   # 资源监控
   get_active_executions() -> List<ExecutionInfo>
   get_resource_usage() -> ResourceUsage
-  
+
   # 优先级调度
   set_priority_weights(weights: Map<Priority, number>) -> void
   reschedule_queue() -> void
@@ -820,15 +820,15 @@ interface ResourceManager:
   # 资源限制
   set_limits(tool_name: string, limits: ResourceLimits) -> void
   get_limits(tool_name: string) -> ResourceLimits
-  
+
   # 资源监控
   monitor_execution(execution_id: string) -> ResourceMonitor
   get_current_usage() -> ResourceUsage
-  
+
   # 资源清理
   cleanup_expired_resources() -> void
   force_cleanup(execution_id: string) -> void
-  
+
   # 预估和预留
   estimate_resources(tool_name: string, params: Map<string, any>) -> ResourceEstimate
   reserve_resources(estimate: ResourceEstimate) -> ReservationToken
@@ -865,28 +865,28 @@ ErrorCode:
   - INVALID_PARAMETER: "TOOL_E001"
   - MISSING_PARAMETER: "TOOL_E002"
   - PARAMETER_TYPE_ERROR: "TOOL_E003"
-  
+
   # 权限错误
   - PERMISSION_DENIED: "TOOL_E101"
   - INSUFFICIENT_PRIVILEGES: "TOOL_E102"
   - ACCESS_FORBIDDEN: "TOOL_E103"
-  
+
   # 资源错误
   - RESOURCE_NOT_FOUND: "TOOL_E201"
   - RESOURCE_BUSY: "TOOL_E202"
   - RESOURCE_EXHAUSTED: "TOOL_E203"
   - DISK_FULL: "TOOL_E204"
-  
+
   # 执行错误
   - EXECUTION_TIMEOUT: "TOOL_E301"
   - EXECUTION_FAILED: "TOOL_E302"
   - COMMAND_NOT_FOUND: "TOOL_E303"
-  
+
   # 网络错误
   - NETWORK_UNREACHABLE: "TOOL_E401"
   - CONNECTION_TIMEOUT: "TOOL_E402"
   - DNS_RESOLUTION_FAILED: "TOOL_E403"
-  
+
   # 系统错误
   - SYSTEM_ERROR: "TOOL_E501"
   - OUT_OF_MEMORY: "TOOL_E502"
@@ -898,15 +898,15 @@ ErrorCode:
 interface ErrorRecoveryHandler:
   # 错误处理
   handle_error(error: ToolError, context: ExecutionContext) -> RecoveryAction
-  
+
   # 重试策略
   should_retry(error: ToolError, attempt_count: number) -> boolean
   get_retry_delay(attempt_count: number) -> number
   get_max_retries(tool_name: string) -> number
-  
+
   # 降级处理
   get_fallback_result(tool_name: string, params: Map<string, any>) -> ToolExecutionResult | null
-  
+
   # 错误上报
   report_error(error: ToolError, context: ExecutionContext) -> void
 
@@ -969,11 +969,11 @@ interface ToolModuleLoader:
   load_module(module_path: string) -> ToolModule
   unload_module(module_name: string) -> Result<void>
   reload_module(module_name: string) -> Result<void>
-  
+
   # 工具发现
   discover_tools(module: ToolModule) -> List<ToolDefinition>
   validate_tools(tools: List<ToolDefinition>) -> ValidationResult
-  
+
   # 依赖管理
   resolve_dependencies(module: ToolModule) -> List<string>
   check_compatibility(module: ToolModule) -> CompatibilityReport
@@ -985,7 +985,7 @@ ToolModule:
   - dependencies: List<string>
   - tools: List<BaseTool>
   - configuration: ModuleConfig
-  
+
   # 生命周期
   initialize(config: ModuleConfig) -> Result<void>
   shutdown() -> Result<void>
@@ -1004,7 +1004,7 @@ tools:
     default_timeout: 30
     cache_enabled: true
     cache_size_mb: 256
-    
+
   # 分类配置
   categories:
     file_operations:
@@ -1018,7 +1018,7 @@ tools:
         - "/etc"
         - "/bin"
         - "/usr/bin"
-        
+
     terminal:
       enabled: true
       allowed_commands:
@@ -1029,7 +1029,7 @@ tools:
         - "git"
       shell_enabled: false
       max_execution_time: 300
-      
+
     network:
       enabled: true
       allowed_domains:
@@ -1038,13 +1038,13 @@ tools:
         - "localhost"
       max_request_size: 10485760  # 10MB
       timeout: 30
-      
+
   # 具体工具配置
   specific_tools:
     read_file:
       cache_ttl: 300  # 5分钟
       max_cache_size: 10485760  # 10MB
-      
+
     run_command:
       enable_shell: false
       log_commands: true
@@ -1058,7 +1058,7 @@ security:
   # 全局安全设置
   sandbox_enabled: true
   audit_all_executions: true
-  
+
   # 权限控制
   permissions:
     file_operations:
@@ -1068,12 +1068,12 @@ security:
       write_file:
         required_permissions: ["file:write"]
         backup_required: true
-        
+
     terminal:
       run_command:
         required_permissions: ["system:execute"]
         command_whitelist: true
-        
+
   # 访问限制
   rate_limits:
     per_user:
@@ -1083,7 +1083,7 @@ security:
       file_operations: 30
       terminal: 10
       network: 20
-      
+
   # 监控告警
   alerts:
     failed_executions_threshold: 10

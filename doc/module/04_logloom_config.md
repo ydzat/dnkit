@@ -9,14 +9,14 @@ MCP工具集采用Logloom作为统一日志系统，配置文件为`config/runti
 logloom:
   # 语言设置
   language: "zh"  # 支持 "zh", "en" 等
-  
+
   # 日志配置
   log:
     level: "INFO"           # DEBUG, INFO, WARN, ERROR, FATAL
     file: "logs/mcp-toolkit.log"
     max_size: 10485760      # 10MB，字节数
     console: true           # 是否输出到控制台
-  
+
   # 国际化资源
   locale:
     directory: "i18n"       # 翻译文件目录
@@ -27,29 +27,29 @@ logloom:
 ```yaml
 logloom:
   language: "zh"
-  
+
   # 全局默认配置
   log:
     level: "INFO"
     console: true
-    
+
   # 模块特定配置
   modules:
     protocol_handler:
       file: "logs/protocol.log"
       level: "DEBUG"
       max_size: 5242880     # 5MB
-      
+
     tool_registry:
       file: "logs/tools.log"
       level: "INFO"
       max_size: 5242880
-      
+
     contextengine:
       file: "logs/context.log"
       level: "WARN"
       max_size: 2097152     # 2MB
-      
+
     security:
       file: "logs/security.log"
       level: "INFO"
@@ -74,7 +74,7 @@ def initialize_logging():
 class ProtocolHandler:
     def __init__(self):
         self.logger = ll.Logger("protocol_handler")
-        
+
     def handle_request(self, request):
         self.logger.info("收到请求: {}", request.id)
         try:
@@ -195,7 +195,7 @@ import logloom_py as ll
 class ContextEngineDemo:
     def __init__(self):
         self.logger = ll.Logger("contextengine")
-        
+
     def process_context(self, context):
         self.logger.info(ll.get_text("contextengine.processing_start"))
         # 处理逻辑...
@@ -208,9 +208,9 @@ class ContextEngineDemo:
 class MCPProtocolHandler:
     def __init__(self):
         self.logger = ll.Logger("protocol")
-        
+
     def handle_tools_list(self, request):
-        self.logger.info(ll.get_text("protocol.request_received", 
+        self.logger.info(ll.get_text("protocol.request_received",
                                    method="tools/list", client=request.client_id))
         # 处理逻辑...
 ```

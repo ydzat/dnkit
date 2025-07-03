@@ -14,28 +14,28 @@
 ```mermaid
 graph TB
     A[MCP客户端] --> B[统一MCP协议层]
-    
+
     B --> C[服务路由层]
-    
+
     C --> D[基础工具服务]
     C --> E[ContextEngine服务]
     C --> F[AI能力服务]
     C --> G[自定义服务模块]
-    
+
     D --> D1[文件操作]
     D --> D2[终端执行]
     D --> D3[网络请求]
-    
+
     E --> E1[上下文分析]
     E --> E2[智能推荐]
-    
+
     F --> F1[图像生成]
     F --> F2[语音处理]
     F --> F3[文本分析]
-    
+
     G --> G1[第三方工具集]
     G --> G2[企业定制工具]
-    
+
     subgraph "服务基础设施"
         H[配置管理]
         I[日志监控]
@@ -43,7 +43,7 @@ graph TB
         K[缓存系统]
         L[资源管理]
     end
-    
+
     D -.-> H
     E -.-> H
     F -.-> H
@@ -59,22 +59,22 @@ interface ServiceModule:
   get_module_info() -> ModuleInfo
   get_service_namespace() -> string
   get_supported_tools() -> List<ToolDefinition>
-  
+
   # 生命周期管理
   initialize(config: ModuleConfig, context: ServiceContext) -> Result<void>
   start() -> Result<void>
   stop() -> Result<void>
   shutdown() -> Result<void>
-  
+
   # 服务能力
   handle_tool_call(request: ToolCallRequest) -> ToolCallResponse
   list_available_tools() -> List<ToolDefinition>
   get_tool_schema(tool_name: string) -> JSONSchema | null
-  
+
   # 健康检查
   health_check() -> HealthStatus
   get_metrics() -> ModuleMetrics
-  
+
   # 配置管理
   reload_config(config: ModuleConfig) -> Result<void>
   validate_config(config: ModuleConfig) -> ValidationResult
@@ -123,17 +123,17 @@ interface ServiceRegistry:
   # 服务注册
   register_service(module: ServiceModule) -> Result<ServiceId>
   unregister_service(service_id: ServiceId) -> Result<void>
-  
+
   # 服务发现
   discover_services() -> List<ServiceInfo>
   find_service_by_capability(capability: CapabilityType) -> List<ServiceInfo>
   find_service_by_namespace(namespace: string) -> ServiceInfo | null
-  
+
   # 工具管理
   list_all_tools() -> List<ToolDefinition>
   find_tool(tool_name: string) -> ToolLocation | null
   resolve_tool_conflicts() -> ConflictResolution
-  
+
   # 服务监控
   get_service_status(service_id: ServiceId) -> ServiceStatus
   get_all_services_health() -> Map<ServiceId, HealthStatus>
@@ -160,13 +160,13 @@ ServiceStatus: "loading" | "running" | "stopped" | "error" | "unregistered"
 interface ServiceRouter:
   # 路由决策
   route_tool_call(request: ToolCallRequest) -> RoutingDecision
-  
+
   # 负载均衡
   select_service_instance(tool_name: string, instances: List<ServiceId>) -> ServiceId
-  
+
   # 故障转移
   handle_service_failure(failed_service: ServiceId, request: ToolCallRequest) -> RoutingDecision
-  
+
   # 路由策略
   set_routing_strategy(strategy: RoutingStrategy) -> void
   get_routing_rules() -> List<RoutingRule>
@@ -203,19 +203,19 @@ interface PlatformConfigManager:
   # 全局配置
   get_platform_config() -> PlatformConfig
   update_platform_config(config: PlatformConfig) -> Result<void>
-  
+
   # 模块配置
   get_module_config(module_id: string) -> ModuleConfig | null
   update_module_config(module_id: string, config: ModuleConfig) -> Result<void>
-  
+
   # 配置热更新
   enable_hot_reload(module_id: string) -> void
   disable_hot_reload(module_id: string) -> void
-  
+
   # 配置版本管理
   get_config_version(module_id: string) -> string
   rollback_config(module_id: string, version: string) -> Result<void>
-  
+
   # 配置验证
   validate_platform_config(config: PlatformConfig) -> ValidationResult
   validate_module_config(module_id: string, config: ModuleConfig) -> ValidationResult
@@ -250,17 +250,17 @@ interface PlatformEventBus:
   # 事件发布
   publish_platform_event(event: PlatformEvent) -> void
   publish_service_event(service_id: ServiceId, event: ServiceEvent) -> void
-  
+
   # 事件订阅
   subscribe_platform_events(handler: PlatformEventHandler) -> SubscriptionId
   subscribe_service_events(service_id: ServiceId, handler: ServiceEventHandler) -> SubscriptionId
-  
+
   # 事件过滤
   subscribe_filtered_events(filter: EventFilter, handler: EventHandler) -> SubscriptionId
-  
+
   # 事件历史
   get_event_history(filter: EventFilter, limit: number) -> List<Event>
-  
+
   # 事件统计
   get_event_statistics(time_range: TimeRange) -> EventStatistics
 
@@ -305,20 +305,20 @@ interface PlatformSecurityManager:
   authenticate_client(credentials: ClientCredentials) -> AuthenticationResult
   validate_token(token: string) -> TokenValidationResult
   refresh_token(refresh_token: string) -> TokenRefreshResult
-  
+
   # 授权管理
   authorize_tool_access(user: UserInfo, tool_name: string) -> AuthorizationResult
   check_service_permissions(user: UserInfo, service_id: ServiceId) -> PermissionCheckResult
-  
+
   # 会话管理
   create_session(user: UserInfo) -> SessionInfo
   get_session(session_id: string) -> SessionInfo | null
   invalidate_session(session_id: string) -> void
-  
+
   # 审计日志
   log_access_attempt(user: UserInfo, resource: string, result: AccessResult) -> void
   log_security_event(event: SecurityEvent) -> void
-  
+
   # 安全策略
   get_security_policy() -> SecurityPolicy
   update_security_policy(policy: SecurityPolicy) -> Result<void>
@@ -357,9 +357,9 @@ class BasicToolsServiceModule implements ServiceModule:
     name: "基础工具服务"
     version: "1.0.0"
     namespace: "basic"
-    capabilities: [FILE_OPERATIONS, TERMINAL_EXECUTION, NETWORK_ACCESS, 
+    capabilities: [FILE_OPERATIONS, TERMINAL_EXECUTION, NETWORK_ACCESS,
                    CODE_ANALYSIS, VERSION_CONTROL, SEARCH_INDEXING]
-  
+
   # 提供的工具
   supported_tools:
     - "basic.read_file"
@@ -371,7 +371,7 @@ class BasicToolsServiceModule implements ServiceModule:
     - "basic.file_search"
     - "basic.content_search"
     - "basic.analyze_code"
-  
+
   # 配置结构
   config_schema:
     type: "object"
@@ -397,7 +397,7 @@ class ContextEngineServiceModule implements ServiceModule:
     version: "1.0.0"
     namespace: "context"
     capabilities: [CONTEXT_ANALYSIS, AI_ASSISTANCE]
-  
+
   # 提供的工具
   supported_tools:
     - "context.analyze_context"
@@ -405,20 +405,20 @@ class ContextEngineServiceModule implements ServiceModule:
     - "context.update_memory"
     - "context.search_similar"
     - "context.generate_summary"
-  
+
   # 依赖服务
   dependencies:
     - "basic_tools"  # 需要基础工具支持
-  
+
   # 适配器接口
   context_engine_adapter:
     # 数据转换
     convert_mcp_to_context_format(request: ToolCallRequest) -> ContextEngineRequest
     convert_context_to_mcp_format(response: ContextEngineResponse) -> ToolCallResponse
-    
+
     # 状态同步
     sync_context_state() -> Result<void>
-    
+
     # 错误处理
     handle_context_engine_error(error: ContextEngineError) -> ToolError
 ```
@@ -433,7 +433,7 @@ class AICapabilitiesServiceModule implements ServiceModule:
     version: "1.0.0"
     namespace: "ai"
     capabilities: [AI_ASSISTANCE, IMAGE_PROCESSING, AUDIO_PROCESSING]
-  
+
   # 提供的工具
   supported_tools:
     - "ai.generate_image"      # 图像生成
@@ -442,7 +442,7 @@ class AICapabilitiesServiceModule implements ServiceModule:
     - "ai.synthesize_speech"   # 文本转语音
     - "ai.translate_text"      # 文本翻译
     - "ai.summarize_content"   # 内容摘要
-  
+
   # 外部API集成
   api_integrations:
     - service: "openai"
@@ -464,13 +464,13 @@ service_discovery:
     - "./services"
     - "./plugins"
     - "/opt/mcp-toolkit/services"
-  
+
   # 服务模块文件模式
   module_patterns:
     - "*.service.py"
     - "*/service.yaml"
     - "service_*.json"
-  
+
   # 自动加载规则
   auto_load:
     - pattern: "basic_*"
@@ -480,7 +480,7 @@ service_discovery:
     - pattern: "ai_*"
       priority: 3
       requires_approval: true
-  
+
   # 健康检查
   health_check:
     interval_seconds: 30
@@ -493,19 +493,19 @@ service_discovery:
 # config/platform.yaml
 platform:
   version: "1.0.0"
-  
+
   server:
     host: "0.0.0.0"
     port: 8080
     workers: 4
     max_connections: 1000
-    
+
   routing:
     strategy: "capability_based"
     load_balancing: "round_robin"
     timeout_seconds: 30
     retry_attempts: 3
-    
+
   security:
     authentication:
       enabled: true
@@ -517,7 +517,7 @@ platform:
     audit:
       enabled: true
       log_level: "info"
-      
+
   monitoring:
     metrics:
       enabled: true
@@ -529,20 +529,20 @@ platform:
     logging:
       level: "info"
       format: "structured"
-      
+
   services:
     auto_discovery: true
     load_on_startup:
       - "basic_tools"
       - "context_engine"
     service_timeout_seconds: 60
-    
+
 # config/services/basic_tools.yaml
 service:
   module_id: "basic_tools"
   enabled: true
   priority: 1
-  
+
   configuration:
     file_operations:
       max_file_size_mb: 100
@@ -552,7 +552,7 @@ service:
       cache:
         enabled: true
         ttl_seconds: 300
-        
+
     terminal:
       allowed_commands:
         - "ls"
@@ -561,7 +561,7 @@ service:
         - "git"
       sandbox_enabled: true
       timeout_seconds: 30
-      
+
     network:
       allowed_domains:
         - "*.github.com"
@@ -575,17 +575,17 @@ service:
 interface PlatformMonitoring:
   # 平台指标
   get_platform_metrics() -> PlatformMetrics
-  
+
   # 服务指标
   get_service_metrics(service_id: ServiceId) -> ServiceMetrics
   get_all_services_metrics() -> Map<ServiceId, ServiceMetrics>
-  
+
   # 工具使用指标
   get_tool_usage_stats(time_range: TimeRange) -> ToolUsageStats
-  
+
   # 性能指标
   get_performance_metrics() -> PerformanceMetrics
-  
+
   # 告警管理
   set_alert_threshold(metric: string, threshold: number) -> void
   get_active_alerts() -> List<Alert>
@@ -630,13 +630,13 @@ third_party_integration:
     - include health check endpoint
     - follow naming conventions
     - implement graceful shutdown
-    
+
   # 命名规范
   naming_conventions:
     module_id: "company_product_version"  # 如 "acme_imageai_v1"
     namespace: "company.product"          # 如 "acme.imageai"
     tool_names: "namespace.action"       # 如 "acme.imageai.generate"
-    
+
   # 配置模板
   config_template:
     service:
@@ -644,20 +644,20 @@ third_party_integration:
       name: "${SERVICE_NAME}"
       version: "${VERSION}"
       namespace: "${NAMESPACE}"
-      
+
     dependencies:
       - basic_tools  # 可选依赖
-      
+
     configuration:
       api:
         base_url: "${API_BASE_URL}"
         api_key: "${API_KEY}"
         timeout: 30
-        
+
     resources:
       max_memory_mb: 512
       max_concurrent_requests: 10
-      
+
     security:
       required_permissions:
         - "ai:generate_image"
@@ -670,14 +670,14 @@ interface ServiceDevelopmentKit:
   # 代码生成
   generate_service_template(config: ServiceTemplateConfig) -> ServiceTemplate
   generate_tool_skeleton(tool_definition: ToolDefinition) -> ToolSkeleton
-  
+
   # 验证工具
   validate_service_module(module_path: string) -> ValidationReport
   test_service_integration(module: ServiceModule, test_config: TestConfig) -> TestResult
-  
+
   # 打包工具
   package_service(module_path: string, package_config: PackageConfig) -> ServicePackage
-  
+
   # 部署工具
   deploy_service(package: ServicePackage, target: DeploymentTarget) -> DeploymentResult
 
@@ -703,7 +703,7 @@ interface PlatformBootstrap:
   start_all_services() -> Result<void>
   setup_routing() -> Result<void>
   start_mcp_server() -> Result<void>
-  
+
   # 关闭流程
   graceful_shutdown(timeout_seconds: number) -> Result<void>
   stop_all_services() -> Result<void>
@@ -727,13 +727,13 @@ StartupSequence:
     - SecurityManager
     - Logger
     - MetricsCollector
-    
+
   phase_2_platform_services:
     - ServiceRegistry
     - ServiceRouter
     - HealthMonitor
     - ResourceManager
-    
+
   phase_3_service_modules:
     - BasicToolsService
     - ContextEngineService
@@ -746,15 +746,15 @@ interface ServiceLifecycleCoordinator:
   # 服务依赖管理
   resolve_service_dependencies(services: List<ServiceModule>) -> DependencyGraph
   calculate_startup_order(dependency_graph: DependencyGraph) -> List<ServiceId>
-  
+
   # 启动协调
   start_services_in_order(startup_order: List<ServiceId>) -> Result<void>
   wait_for_service_ready(service_id: ServiceId, timeout: number) -> Result<void>
-  
+
   # 运行时管理
   restart_service(service_id: ServiceId) -> Result<void>
   scale_service(service_id: ServiceId, instances: number) -> Result<void>
-  
+
   # 故障处理
   handle_service_failure(service_id: ServiceId, error: ServiceError) -> RecoveryAction
   isolate_failed_service(service_id: ServiceId) -> Result<void>
@@ -786,19 +786,19 @@ interface InterServiceCommunication:
   # 服务发现
   discover_service(service_type: string) -> List<ServiceEndpoint>
   resolve_service(service_id: ServiceId) -> ServiceEndpoint | null
-  
+
   # 直接调用
   call_service(target: ServiceId, method: string, params: any) -> Result<any>
   call_service_async(target: ServiceId, method: string, params: any) -> Future<Result<any>>
-  
+
   # 事件通信
   send_event(target: ServiceId, event: ServiceEvent) -> void
   broadcast_event(event: PlatformEvent) -> void
-  
+
   # 数据共享
   share_data(key: string, data: any, ttl: number) -> void
   get_shared_data(key: string) -> any | null
-  
+
   # 状态同步
   sync_service_state(service_id: ServiceId) -> Result<void>
   get_service_state(service_id: ServiceId) -> ServiceState
@@ -819,20 +819,20 @@ interface PlatformDataLayer:
   set_cache(key: string, value: any, ttl: number, scope: CacheScope) -> void
   get_cache(key: string, scope: CacheScope) -> any | null
   invalidate_cache(pattern: string, scope: CacheScope) -> void
-  
+
   # 服务状态存储
   store_service_state(service_id: ServiceId, state: ServiceState) -> void
   load_service_state(service_id: ServiceId) -> ServiceState | null
-  
+
   # 配置同步
   sync_configuration(service_id: ServiceId, config: ServiceConfig) -> void
   get_effective_config(service_id: ServiceId) -> ServiceConfig
-  
+
   # 会话管理
   create_session(session_data: SessionData) -> SessionId
   get_session(session_id: SessionId) -> SessionData | null
   update_session(session_id: SessionId, updates: SessionUpdate) -> void
-  
+
   # 工作流状态
   store_workflow_state(workflow_id: string, state: WorkflowState) -> void
   get_workflow_state(workflow_id: string) -> WorkflowState | null
@@ -856,17 +856,17 @@ interface WorkflowOrchestrator:
   define_workflow(workflow: WorkflowDefinition) -> WorkflowId
   update_workflow(workflow_id: WorkflowId, updates: WorkflowUpdate) -> Result<void>
   delete_workflow(workflow_id: WorkflowId) -> Result<void>
-  
+
   # 工作流执行
   execute_workflow(workflow_id: WorkflowId, inputs: Map<string, any>) -> WorkflowExecution
   pause_workflow(execution_id: ExecutionId) -> Result<void>
   resume_workflow(execution_id: ExecutionId) -> Result<void>
   cancel_workflow(execution_id: ExecutionId) -> Result<void>
-  
+
   # 工作流监控
   get_workflow_status(execution_id: ExecutionId) -> WorkflowStatus
   get_workflow_history(workflow_id: WorkflowId) -> List<WorkflowExecution>
-  
+
   # 条件分支
   evaluate_condition(condition: WorkflowCondition, context: WorkflowContext) -> boolean
   execute_conditional_step(step: ConditionalStep, context: WorkflowContext) -> StepResult
@@ -911,19 +911,19 @@ interface EnterpriseSecurityManager:
   define_permission_policy(policy: PermissionPolicy) -> PolicyId
   assign_policy_to_user(user_id: string, policy_id: PolicyId) -> Result<void>
   check_fine_grained_permissions(user: UserInfo, resource: Resource, action: Action) -> PermissionResult
-  
+
   # 数据分类和保护
   classify_data(data: any, context: DataContext) -> DataClassification
   apply_data_protection(data: any, classification: DataClassification) -> ProtectedData
-  
+
   # 安全扫描
   scan_service_module(module: ServiceModule) -> SecurityScanResult
   scan_tool_parameters(tool_call: ToolCall) -> ParameterScanResult
-  
+
   # 威胁检测
   detect_anomalies(user_behavior: UserBehavior) -> List<SecurityAnomaly>
   analyze_access_patterns(access_logs: List<AccessLog>) -> ThreatAnalysis
-  
+
   # 合规性检查
   check_compliance(operation: Operation, regulations: List<Regulation>) -> ComplianceResult
   generate_compliance_report(time_range: TimeRange) -> ComplianceReport
@@ -966,19 +966,19 @@ interface MultiTenantManager:
   create_tenant(tenant_info: TenantInfo) -> TenantId
   update_tenant(tenant_id: TenantId, updates: TenantUpdate) -> Result<void>
   delete_tenant(tenant_id: TenantId) -> Result<void>
-  
+
   # 资源隔离
   allocate_resources(tenant_id: TenantId, allocation: ResourceAllocation) -> Result<void>
   enforce_resource_limits(tenant_id: TenantId) -> void
-  
+
   # 数据隔离
   get_tenant_data_scope(tenant_id: TenantId) -> DataScope
   enforce_data_isolation(request: ToolCallRequest) -> IsolatedRequest
-  
+
   # 服务定制
   customize_service_for_tenant(tenant_id: TenantId, service_id: ServiceId, customization: ServiceCustomization) -> Result<void>
   get_tenant_service_config(tenant_id: TenantId, service_id: ServiceId) -> ServiceConfig
-  
+
   # 计费和使用统计
   track_usage(tenant_id: TenantId, usage: UsageRecord) -> void
   generate_usage_report(tenant_id: TenantId, period: TimePeriod) -> UsageReport
@@ -1022,17 +1022,17 @@ interface DeveloperTools:
   create_service_project(template: ServiceTemplate) -> ProjectStructure
   validate_service_definition(definition: ServiceDefinition) -> ValidationResult
   generate_service_documentation(service: ServiceModule) -> Documentation
-  
+
   # 测试工具
   create_test_suite(service: ServiceModule) -> TestSuite
   run_integration_tests(service: ServiceModule, test_config: TestConfig) -> TestResults
   simulate_load_testing(service: ServiceModule, load_config: LoadTestConfig) -> LoadTestResults
-  
+
   # 调试工具
   enable_debug_mode(service_id: ServiceId) -> void
   trace_tool_execution(tool_call: ToolCall) -> ExecutionTrace
   profile_service_performance(service_id: ServiceId, duration: number) -> PerformanceProfile
-  
+
   # 部署工具
   package_service_for_deployment(service: ServiceModule, target: DeploymentTarget) -> DeploymentPackage
   deploy_to_environment(package: DeploymentPackage, environment: Environment) -> DeploymentResult
@@ -1068,21 +1068,21 @@ interface OperationsTools:
   get_real_time_dashboard() -> DashboardData
   set_monitoring_alerts(alerts: List<AlertRule>) -> void
   get_system_health_overview() -> HealthOverview
-  
+
   # 性能分析
   analyze_performance_trends(time_range: TimeRange) -> PerformanceTrends
   identify_bottlenecks() -> List<PerformanceBottleneck>
   suggest_optimizations() -> List<OptimizationSuggestion>
-  
+
   # 容量规划
   forecast_resource_needs(time_horizon: TimePeriod) -> ResourceForecast
   recommend_scaling_actions() -> List<ScalingRecommendation>
-  
+
   # 故障排查
   diagnose_system_issues() -> DiagnosisReport
   trace_error_propagation(error: SystemError) -> ErrorTrace
   suggest_remediation_actions(issue: SystemIssue) -> List<RemediationAction>
-  
+
   # 备份和恢复
   create_system_backup(backup_config: BackupConfig) -> BackupResult
   restore_from_backup(backup_id: string, restore_options: RestoreOptions) -> RestoreResult

@@ -135,7 +135,7 @@ class HTTPTransportHandler(ProtocolHandler):
         """Handle errors and convert to appropriate HTTP responses."""
         try:
             response = await handler(request)
-            return response  # type: ignore
+            return response
         except web.HTTPException:
             raise
         except ProtocolError as e:
@@ -148,7 +148,9 @@ class HTTPTransportHandler(ProtocolHandler):
             return web.json_response({"error": "Internal server error"}, status=500)
 
     @web.middleware
-    async def _logging_middleware(self, request: Request, handler: Callable) -> Response:
+    async def _logging_middleware(
+        self, request: Request, handler: Callable
+    ) -> Response:
         """Log requests and responses."""
         start_time = asyncio.get_event_loop().time()
 
@@ -159,7 +161,7 @@ class HTTPTransportHandler(ProtocolHandler):
         duration = asyncio.get_event_loop().time() - start_time
         self.logger.debug(f"Response: {response.status} in {duration:.3f}s")
 
-        return response  # type: ignore
+        return response
 
     async def _handle_mcp_request(self, request: Request) -> Response:
         """Handle MCP JSON-RPC requests."""

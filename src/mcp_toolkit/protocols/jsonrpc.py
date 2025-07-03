@@ -183,7 +183,7 @@ class JSONRPCProcessor:
     def _create_success_response(self, request_id: Union[str, int], result: Any) -> str:
         """Create a successful JSON-RPC response."""
         response = JSONRPCResponse(result=result, error=None, id=request_id)
-        return response.model_dump_json()
+        return str(response.model_dump_json())
 
     def _create_error_response(
         self,
@@ -197,8 +197,10 @@ class JSONRPCProcessor:
             code=error_code, message=error_message, data=error_data
         )
 
-        response = JSONRPCResponse(result=None, error=error_obj.model_dump(), id=request_id)
-        return response.model_dump_json()
+        response = JSONRPCResponse(
+            result=None, error=error_obj.model_dump(), id=request_id
+        )
+        return str(response.model_dump_json())
 
     def get_registered_methods(self) -> List[str]:
         """Get list of registered method names."""

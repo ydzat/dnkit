@@ -14,7 +14,7 @@ graph TD
     A[应用接口层] --> B[服务接口层]
     B --> C[模块接口层]
     C --> D[工具接口层]
-    
+
     A --> A1[MCP协议接口]
     B --> B1[服务管理接口]
     B --> B2[生命周期接口]
@@ -135,17 +135,17 @@ interface Module:
   start() -> Result<void>
   stop() -> Result<void>
   restart() -> Result<void>
-  
+
   # 状态查询
   get_status() -> ModuleStatus
   health_check() -> HealthCheck
   get_metrics() -> Map<string, number>
-  
+
   # 配置管理
   get_config() -> Config
   update_config(config: Config) -> Result<void>
   validate_config(config: Config) -> Result<void>
-  
+
   # 元数据
   get_info() -> ModuleInfo
 
@@ -165,11 +165,11 @@ interface ToolModule extends Module:
   get_tool(name: string) -> ToolDefinition | null
   register_tool(definition: ToolDefinition) -> Result<void>
   unregister_tool(name: string) -> Result<void>
-  
+
   # 工具执行
   call_tool(request: ToolCallRequest) -> Result<ToolCallResponse>
   validate_tool_call(request: ToolCallRequest) -> Result<void>
-  
+
   # 工具状态
   get_tool_status(name: string) -> ToolStatus
   enable_tool(name: string) -> Result<void>
@@ -191,7 +191,7 @@ interface ProtocolHandler extends Module:
   handle_request(request: ProtocolRequest) -> Result<ProtocolResponse>
   validate_request(request: ProtocolRequest) -> Result<void>
   format_response(data: any) -> ProtocolResponse
-  
+
   # 协议信息
   get_protocol_info() -> ProtocolInfo
   supports_method(method: string) -> boolean
@@ -223,13 +223,13 @@ interface ServiceManager:
   start_service() -> Result<void>
   stop_service() -> Result<void>
   restart_service() -> Result<void>
-  
+
   # 模块管理
   register_module(module: Module) -> Result<void>
   unregister_module(name: string) -> Result<void>
   get_module(name: string) -> Module | null
   list_modules() -> List<ModuleInfo>
-  
+
   # 健康检查
   health_check() -> ServiceHealth
   get_service_metrics() -> ServiceMetrics
@@ -254,16 +254,16 @@ interface ToolRegistry:
   # 工具注册
   register_tool_module(module: ToolModule) -> Result<void>
   unregister_tool_module(name: string) -> Result<void>
-  
+
   # 工具发现
   list_tools() -> List<ToolDefinition>
   find_tool(name: string) -> ToolDefinition | null
   search_tools(query: ToolQuery) -> List<ToolDefinition>
-  
+
   # 工具调用
   call_tool(request: ToolCallRequest) -> Result<ToolCallResponse>
   batch_call_tools(requests: List<ToolCallRequest>) -> List<Result<ToolCallResponse>>
-  
+
   # 工具状态
   get_tool_registry_status() -> ToolRegistryStatus
 
@@ -309,11 +309,11 @@ interface EventBus:
   # 事件发布
   publish(event: Event) -> void
   publish_async(event: Event) -> Future<void>
-  
+
   # 事件订阅
   subscribe(event_type: string, handler: EventHandler) -> SubscriptionId
   unsubscribe(subscription_id: SubscriptionId) -> void
-  
+
   # 事件查询
   get_event_history(filter: EventFilter) -> List<Event>
 
@@ -337,11 +337,11 @@ interface ConfigProvider:
   # 配置加载
   load_config(path: string) -> Result<Config>
   save_config(path: string, config: Config) -> Result<void>
-  
+
   # 配置监听
   watch_config(path: string, callback: ConfigChangeCallback) -> WatchId
   unwatch_config(watch_id: WatchId) -> void
-  
+
   # 配置验证
   validate_config(config: Config, schema: JSONSchema) -> Result<void>
 
@@ -357,14 +357,14 @@ interface ConfigManager:
   # 配置获取
   get_config(module_name: string) -> Config | null
   get_global_config() -> Config
-  
+
   # 配置更新
   update_config(module_name: string, config: Config) -> Result<void>
   reload_all_configs() -> Result<void>
-  
+
   # 配置监听
   on_config_change(module_name: string, callback: ConfigChangeCallback) -> void
-  
+
   # 配置验证
   validate_all_configs() -> Result<void>
 ```
@@ -378,13 +378,13 @@ interface LogManager:
   # 系统初始化和清理
   initialize(config: LogConfig | string) -> boolean
   cleanup() -> boolean
-  
+
   # 全局配置
   set_log_level(level: LogLevel | string) -> boolean
   set_log_file(filepath: string) -> boolean
   set_log_max_size(max_bytes: number) -> boolean
   set_output_console(enabled: boolean) -> boolean
-  
+
   # 国际化支持
   set_language(lang_code: string) -> boolean
   get_current_language() -> string
@@ -395,7 +395,7 @@ interface LogManager:
 interface Logger:
   # 构造器
   create(name: string | null) -> Logger
-  
+
   # 日志记录方法
   debug(message: string, *args, **kwargs) -> void
   info(message: string, *args, **kwargs) -> void
@@ -404,7 +404,7 @@ interface Logger:
   error(message: string, *args, **kwargs) -> void
   fatal(message: string, *args, **kwargs) -> void
   critical(message: string, *args, **kwargs) -> void  # fatal的别名
-  
+
   # 实例配置
   set_level(level: LogLevel | string) -> void
   set_file(file_path: string) -> void
@@ -437,15 +437,15 @@ interface MetricsCollector:
   # 计数器
   increment_counter(name: string, tags: Map<string, string>) -> void
   decrement_counter(name: string, tags: Map<string, string>) -> void
-  
+
   # 计量器
   record_gauge(name: string, value: number, tags: Map<string, string>) -> void
-  
+
   # 计时器
   start_timer(name: string, tags: Map<string, string>) -> TimerId
   stop_timer(timer_id: TimerId) -> void
   record_timing(name: string, duration: number, tags: Map<string, string>) -> void
-  
+
   # 指标查询
   get_metrics(filter: MetricsFilter) -> MetricsResult
 
@@ -510,16 +510,16 @@ interface ServiceModule extends ToolModule:
   get_module_info() -> ModuleInfo
   get_service_namespace() -> string
   get_supported_tools() -> List<ToolDefinition>
-  
+
   # 服务生命周期（扩展自Module）
   initialize(config: ModuleConfig, context: ServiceContext) -> Result<void>
   shutdown() -> Result<void>
-  
+
   # 服务能力
   handle_tool_call(request: ToolCallRequest) -> ToolCallResponse
   list_available_tools() -> List<ToolDefinition>
   get_tool_schema(tool_name: string) -> JSONSchema | null
-  
+
   # 配置管理（扩展）
   reload_config(config: ModuleConfig) -> Result<void>
   validate_config(config: ModuleConfig) -> ValidationResult

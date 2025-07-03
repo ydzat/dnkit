@@ -58,7 +58,9 @@ class TestModuleLogger:
         """测试文件日志记录"""
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = Path(tmpdir) / "test.log"
-            config = LogConfig(file_path=str(log_file), console=True)  # 启用控制台用于测试
+            config = LogConfig(
+                file_path=str(log_file), console=True
+            )  # 启用控制台用于测试
             logger = ModuleLogger("test.file", config)
 
             logger.info("Test file logging")
@@ -67,7 +69,7 @@ class TestModuleLogger:
             # 检查控制台输出（因为Logloom的文件功能在纯Python模式下受限）
             captured = capfd.readouterr()
             assert "Test file logging" in captured.out
-            
+
             # 如果文件存在且有内容，也验证文件输出
             if log_file.exists():
                 try:
@@ -179,7 +181,7 @@ def test_integration_logging(temp_log_dir, capfd):
     logger1.info("Info from integration.test")
     logger2.debug("Debug from integration.other")  # 应该被过滤
     logger2.info("Info from integration.other")
-    
+
     # 确保日志写入到文件
     logger1.flush()
     logger2.flush()
@@ -187,13 +189,17 @@ def test_integration_logging(temp_log_dir, capfd):
     # 检查控制台输出（因为Logloom的文件输出在纯Python实现中可能有限制）
     captured = capfd.readouterr()
     console_output = captured.out
-    
+
     # 验证模块级别配置是否正确工作
-    assert "Debug from integration.test" in console_output  # integration.test模块应该显示DEBUG
+    assert (
+        "Debug from integration.test" in console_output
+    )  # integration.test模块应该显示DEBUG
     assert "Info from integration.test" in console_output
-    assert "Debug from integration.other" not in console_output  # integration.other模块应该过滤DEBUG
+    assert (
+        "Debug from integration.other" not in console_output
+    )  # integration.other模块应该过滤DEBUG
     assert "Info from integration.other" in console_output
-    
+
     # 如果文件存在且有内容，也验证文件输出
     if log_file.exists():
         try:

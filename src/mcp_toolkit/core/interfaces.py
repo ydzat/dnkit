@@ -1,5 +1,4 @@
-"""
-Core interfaces for MCP Toolkit.
+"""Core interfaces for MCP Toolkit.
 
 This module defines the fundamental interfaces that all modules
 and services must implement.

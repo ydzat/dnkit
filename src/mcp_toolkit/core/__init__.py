@@ -1,6 +1,4 @@
-"""
-Core module for MCP Toolkit.
-"""
+"""Core module for MCP Toolkit."""
 
 from .i18n import I18nConfig, _, configure_i18n, get_text, set_locale
 

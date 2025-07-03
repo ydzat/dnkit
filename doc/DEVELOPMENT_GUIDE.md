@@ -27,6 +27,10 @@ MCP工具集是一个基于Model Context Protocol (MCP)的可扩展工具服务�
 - [`04_logloom_config.md`](./module/04_logloom_config.md) - 日志系统配置规范
 - [`05_basic_tools_config.md`](./module/05_basic_tools_config.md) - 工具配置模板和示例
 
+### 开发和运维
+- [代码质量检查和开发工作流](#-代码质量检查和开发工作流) - Pre-commit配置、工具使用和最佳实践
+- [CI/CD 配置指导](#-cicd-配置指导) - GitHub Actions工作流配置
+
 ### 项目管理
 - [`PROGRESS_TRACKING.md`](./PROGRESS_TRACKING.md) - 开发进度追踪和任务管理
 
@@ -183,34 +187,39 @@ MCP工具集是一个基于Model Context Protocol (MCP)的可扩展工具服务�
 **目标**：建立CI/CD基础设施，支持自动化测试和部署
 
 **实现内容**：
-- [x] **持续集成 (CI)** 
+- [x] **代码质量保证** ✅ **已完成**
+  - Pre-commit钩子配置 (black, isort, flake8, mypy, bandit)
+  - 自动化代码格式化和质量检查
+  - 静态类型检查和安全扫描
+  - 合理的忽略规则配置，平衡质量和效率
+  - 完整的开发工作流文档
+
+- [ ] **持续集成 (CI)**
   - GitHub Actions工作流配置
   - 自动化测试运行 (单元测试 + 集成测试)
-  - 代码质量检查 (flake8, mypy)
+  - 代码质量检查集成
   - 测试覆盖率报告 (codecov)
   - MCP协议合规性测试
 
-- [x] **持续部署 (CD)**
+- [ ] **持续部署 (CD)**
   - 自动化发布流程
   - 版本标签管理
   - 构建产物生成
   - 发布资产上传
 
-- [x] **代码质量保证**
-  - 代码格式化检查 (black, isort)  
-  - 静态类型检查 (mypy)
-  - 安全扫描 (bandit)
-  - 依赖漏洞检查
-
 **验收标准**：
-- 推送代码时自动运行测试
-- 测试失败时阻止合并
-- 标签发布时自动创建GitHub Release
-- 代码质量检查全部通过
+- ✅ 本地提交时自动运行代码质量检查
+- ✅ 代码格式化和类型检查通过
+- ✅ 安全检查和依赖漏洞扫描配置完成
+- [ ] 推送代码时自动运行测试
+- [ ] 测试失败时阻止合并
+- [ ] 标签发布时自动创建GitHub Release
 
-**实施时机**：在里程碑2开发前完成，作为基础设施支撑
+**实施状态**：
+- ✅ **代码质量基础设施已完成** (2025-07-03)
+- 🔄 **CI/CD流水线待实施**
 
-**预计工期**：1-2天
+**预计剩余工期**：1-2天（CI/CD配置）
 
 ## 🌿 分支管理策略
 
@@ -229,33 +238,33 @@ gitgraph
     branch develop
     checkout develop
     commit id: "Core Interfaces"
-    
+
     branch feature/protocol-handler
     checkout feature/protocol-handler
     commit id: "HTTP Handler"
     commit id: "JSON-RPC Parser"
-    
+
     checkout develop
     merge feature/protocol-handler
     commit id: "Protocol Handler Done"
-    
+
     branch feature/basic-tools
     checkout feature/basic-tools
     commit id: "File Operations"
     commit id: "Terminal Tools"
-    
+
     checkout develop
     merge feature/basic-tools
     commit id: "Basic Tools Done"
-    
+
     branch release/v1.0
     checkout release/v1.0
     commit id: "Release Prep"
-    
+
     checkout main
     merge release/v1.0
     tag: "v1.0.0"
-    
+
     checkout develop
     merge release/v1.0
     commit id: "Back to Develop"
@@ -329,36 +338,36 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
       with:
         version: "latest"
-    
+
     - name: Set up Python
       run: uv python install 3.11
-    
+
     - name: Install dependencies
       run: |
         uv sync
         uv pip install pytest pytest-cov flake8 mypy
-    
+
     - name: Lint with flake8
       run: |
         uv run flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
         uv run flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
+
     - name: Type check with mypy
       run: |
         uv run mypy src/ --ignore-missing-imports
-    
+
     - name: Test with pytest
       run: |
         uv run pytest tests/ --cov=src/ --cov-report=xml
-    
+
     - name: Upload coverage
       uses: codecov/codecov-action@v3
       with:
@@ -367,19 +376,19 @@ jobs:
   mcp-compliance:
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
-    
+
     - name: Set up Python
       run: uv python install 3.11
-    
+
     - name: Install dependencies
       run: uv sync
-    
+
     - name: Test MCP protocol compliance
       run: |
         uv run python scripts/test_mcp_compliance.py
@@ -398,20 +407,20 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
-    
+
     - name: Set up Python
       run: uv python install 3.11
-    
+
     - name: Build package
       run: |
         uv build
-    
+
     - name: Create Release
       uses: actions/create-release@v1
       env:
@@ -421,7 +430,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
-    
+
     - name: Upload Release Assets
       run: |
         echo "Upload dist files to release"
@@ -717,6 +726,138 @@ uv run pytest tests/performance/ -v --benchmark-only
 - [ ] 更新相关文档
 - [ ] 性能测试通过
 - [ ] 安全扫描无问题
+
+## 🔍 代码质量检查和开发工作流
+
+本项目配置了完整的代码质量检查流程，确保代码的可靠性、安全性和可维护性。
+
+### 快速开始
+
+#### 安装开发环境
+```bash
+# 安装项目依赖和开发工具
+make install
+
+# 或者手动安装
+uv sync --dev
+uv run pre-commit install
+```
+
+#### 日常开发工作流
+
+1. **编写代码** - 正常编写您的代码
+2. **格式化代码** - 在提交前格式化代码
+   ```bash
+   make format
+   ```
+3. **检查代码质量** - 运行所有检查但不修改代码
+   ```bash
+   make check
+   ```
+4. **提交代码** - Git提交时会自动运行基础检查
+
+### 代码质量检查配置
+
+#### Pre-commit 钩子配置
+
+项目使用 `.pre-commit-config.yaml` 配置了以下检查工具：
+
+**1. 代码格式化**
+- **Black (v25.1.0)**: Python代码格式化器，确保一致的代码风格
+- **isort (v5.13.2)**: Import语句排序，保持导入的整洁
+
+**2. 基础文件检查**
+- 清理行尾空白字符
+- 修复文件末尾换行
+- 检查YAML/JSON/TOML语法
+- 检查大文件和合并冲突
+
+**3. 代码质量检查**
+- **flake8 (v7.1.1)**: 综合代码质量检查
+  - 最大行长度：88字符（与Black一致）
+  - 智能忽略：文档字符串格式、与Black冲突的问题
+  - 插件：docstrings, bugbear, comprehensions
+
+**4. 类型检查**
+- **mypy (v1.13.0)**: 静态类型检查
+  - 严格模式：禁止未类型定义、警告冗余转换
+  - 额外依赖：types-PyYAML, types-aiofiles
+
+**5. 安全检查**
+- **bandit (v1.8.5)**: 检查常见的安全问题
+- **safety**: 依赖安全漏洞检查（手动运行）
+
+### 执行策略和时机
+
+- **Git Commit**: 自动运行格式和质量检查
+- **Git Push**: 运行完整测试套件（覆盖率要求75%+）
+- **Manual**: 安全检查需要手动触发
+
+### 常见问题和修复
+
+#### 格式问题修复
+```bash
+# 自动修复格式问题
+make format
+```
+
+#### 代码质量问题
+- **E501 (行过长)**: 拆分长行或使用括号换行
+- **F401 (未使用导入)**: 删除未使用的import
+- **C901 (复杂度)**: 拆分函数或配置忽略
+
+#### 类型检查问题
+```python
+# 忽略未类型化的第三方库
+import untyped_library  # type: ignore
+
+# 忽略特定的类型问题
+result = some_function()  # type: ignore[no-any-return]
+```
+
+#### 安全检查忽略
+```python
+try:
+    cleanup_resource()
+except Exception:  # nosec B110
+    pass  # 已知安全的异常忽略
+```
+
+### 工具配置文件
+
+主要配置分布在以下文件中：
+- `.pre-commit-config.yaml`: Pre-commit钩子配置
+- `pyproject.toml`: 工具设置（mypy、black、isort）
+- `Makefile`: 便捷的开发命令
+
+### 最佳实践
+
+1. **开发时频繁检查**: 经常运行 `make check`
+2. **提交前完整验证**: 运行 `make all`
+3. **理解工具提示**: 错误信息通常很有价值
+4. **渐进式改进**: 可暂时忽略某些问题，但要有计划地修复
+5. **团队协作**: 保持配置文件的一致性
+
+### 故障排除
+
+```bash
+# 重新安装pre-commit钩子
+uv run pre-commit install --overwrite
+
+# 更新工具版本
+uv run pre-commit autoupdate
+
+# 清理缓存
+make clean
+uv run pre-commit clean
+
+# 紧急跳过检查（不推荐）
+git commit --no-verify
+```
+
+---
+
+这些工具配置经过精心调整，平衡了代码质量要求和开发效率。通过这套检查流程，确保了代码库的高质量标准。
 
 ## 🚀 快速开始
 
