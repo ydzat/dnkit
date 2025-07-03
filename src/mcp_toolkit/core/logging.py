@@ -1,205 +1,415 @@
 """
-模块化日志系统实现
+基于Logloom的模块化日志系统实现
 为MCP工具集提供统一的日志记录功能
 """
 
+import hashlib
 import logging
-import logging.handlers
 import os
-import sys
+import tempfile
 from dataclasses import dataclass, field
-from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, Optional, Union
+
+import logloom_py as ll
+import yaml
 
 from .types import ConfigDict
 
 
 @dataclass
 class LogConfig:
-    """日志配置类"""
+    """日志配置类 - 兼容Logloom配置格式"""
 
     level: str = "INFO"
-    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    date_format: str = "%Y-%m-%d %H:%M:%S"
+    language: str = "zh"
     file_path: Optional[str] = None
-    max_bytes: int = 10 * 1024 * 1024  # 10MB
-    backup_count: int = 5
-    enable_console: bool = True
-    enable_file: bool = True
-    module_levels: Dict[str, str] = field(default_factory=dict)
+    max_size: int = 10 * 1024 * 1024  # 10MB
+    max_bytes: int = 10 * 1024 * 1024  # 兼容性别名
+    console: bool = True
+    enable_console: bool = True  # 兼容性别名
+    enable_file: bool = True  # 兼容性属性
+    modules: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    module_levels: Dict[str, str] = field(default_factory=dict)  # 兼容性别名
+    
+    def __post_init__(self) -> None:
+        """后初始化处理，同步兼容性属性"""
+        # 同步enable_console和console
+        if hasattr(self, 'enable_console') and not self.enable_console:
+            self.console = False
+        
+        # 同步max_bytes和max_size
+        if hasattr(self, 'max_bytes'):
+            self.max_size = self.max_bytes
+        
+        # 同步module_levels到modules
+        for module_name, level in self.module_levels.items():
+            if module_name not in self.modules:
+                self.modules[module_name] = {}
+            self.modules[module_name]["level"] = level
+    
+    def to_logloom_config(self) -> Dict[str, Any]:
+        """转换为Logloom配置格式"""
+        # 计算最低的日志级别（包括模块级别）
+        min_level = self.level
+        for module_level in self.module_levels.values():
+            if self._level_to_int(module_level) < self._level_to_int(min_level):
+                min_level = module_level
+        
+        config = {
+            "logloom": {
+                "language": self.language,
+                "log": {
+                    "level": min_level,  # 使用最低级别，让单个Logger控制具体级别
+                    "console": self.console,
+                    "format": "[{timestamp}][{level}][{module}] {message}",
+                    "timestamp_format": "%Y-%m-%d %H:%M:%S"
+                }
+            }
+        }
+        
+        if self.file_path:
+            log_config = config["logloom"]["log"]  # type: ignore
+            log_config["file"] = self.file_path  # type: ignore
+            log_config["max_size"] = self.max_size  # type: ignore
+        
+        # 如果禁用了控制台且有文件路径，确保只输出到文件
+        if not self.console and self.file_path:
+            log_config = config["logloom"]["log"]  # type: ignore
+            log_config["console"] = False  # type: ignore
+            
+        return config
+
+    def _level_to_int(self, level: str) -> int:
+        """将日志级别转换为数字，用于比较"""
+        level_map = {
+            "DEBUG": 10,
+            "INFO": 20,
+            "WARN": 30,
+            "WARNING": 30,
+            "ERROR": 40,
+            "FATAL": 50,
+            "CRITICAL": 50
+        }
+        return level_map.get(level.upper(), 20)
 
 
 class ModuleLogger:
-    """模块化日志记录器"""
+    """模块化日志记录器 - 基于Logloom实现"""
+    
+    _global_initialized = False
 
     def __init__(self, name: str, config: Optional[LogConfig] = None):
         self.name = name
         self.config = config or LogConfig()
+        self._logger: Optional[ll.Logger] = None
+        
+        # 创建标准logging.Logger以提供兼容性
         self.logger = logging.getLogger(name)
-        self._setup_logger()
+        self.logger.setLevel(getattr(logging, self.config.level.upper(), logging.INFO))
+        
+        # 初始化Logloom
+        self._ensure_initialized()
 
-    def _setup_logger(self):
-        """设置日志记录器"""
-        # 设置日志级别
-        level = self.config.module_levels.get(self.name, self.config.level)
-        self.logger.setLevel(getattr(logging, level.upper()))
+    def _ensure_initialized(self) -> None:
+        """确保Logloom已初始化"""
+        # 只在第一次时初始化全局Logloom
+        if not ModuleLogger._global_initialized:
+            # 使用基础配置初始化Logloom（使用DEBUG级别以允许所有日志）
+            config_dict = {
+                "logloom": {
+                    "language": self.config.language,
+                    "log": {
+                        "level": "DEBUG",  # 始终使用DEBUG以允许所有级别
+                        "console": self.config.console,
+                        "format": "[{timestamp}][{level}][{module}] {message}",
+                        "timestamp_format": "%Y-%m-%d %H:%M:%S"
+                    }
+                }
+            }
+            
+            # 如果有文件配置，添加到配置中
+            if self.config.file_path:
+                config_dict["logloom"]["log"]["file"] = self.config.file_path
+                config_dict["logloom"]["log"]["max_size"] = self.config.max_size
+            
+            # 创建临时配置文件
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+                yaml.dump(config_dict, f)
+                config_path = f.name
+            
+            try:
+                # 清理之前的Logloom状态
+                try:
+                    ll.cleanup()
+                except:
+                    pass
+                
+                # 初始化Logloom
+                ll.initialize(config_path)
+                
+                # 显式设置全局文件输出
+                if self.config.file_path:
+                    ll.set_log_file(self.config.file_path)
+                    ll.set_log_max_size(self.config.max_size)
+                
+                ModuleLogger._global_initialized = True
+            finally:
+                # 清理临时文件
+                os.unlink(config_path)
+        
+        # 创建logger实例
+        self._logger = ll.Logger(self.name)
+        
+        # 验证logger创建是否成功
+        if not self._logger:
+            # 如果失败，尝试重新创建
+            self._logger = ll.Logger(self.name)
 
-        # 清除现有处理器
-        self.logger.handlers.clear()
+    def _should_log(self, level: str) -> bool:
+        """检查是否应该记录指定级别的日志"""
+        level_values = {
+            "DEBUG": 10,
+            "INFO": 20,
+            "WARN": 30,
+            "WARNING": 30,
+            "ERROR": 40,
+            "FATAL": 50,
+            "CRITICAL": 50
+        }
+        
+        current_level_value = level_values.get(self.config.level.upper(), 20)
+        log_level_value = level_values.get(level.upper(), 20)
+        
+        return log_level_value >= current_level_value
 
-        # 创建格式化器
-        formatter = logging.Formatter(
-            self.config.format, datefmt=self.config.date_format
-        )
+    def debug(self, message: str, *args: Any) -> None:
+        """记录调试级别日志"""
+        if self._logger and self._should_log("DEBUG"):
+            formatted_msg = message.format(*args) if args else message
+            self._logger.debug(formatted_msg)
 
-        # 添加控制台处理器
-        if self.config.enable_console:
-            console_handler = logging.StreamHandler(sys.stdout)
-            console_handler.setFormatter(formatter)
-            self.logger.addHandler(console_handler)
+    def info(self, message: str, *args: Any) -> None:
+        """记录信息级别日志"""
+        if self._logger and self._should_log("INFO"):
+            formatted_msg = message.format(*args) if args else message
+            self._logger.info(formatted_msg)
 
-        # 添加文件处理器
-        if self.config.enable_file and self.config.file_path:
-            file_path = Path(self.config.file_path)
-            file_path.parent.mkdir(parents=True, exist_ok=True)
+    def warning(self, message: str, *args: Any) -> None:
+        """记录警告级别日志"""
+        if self._logger and self._should_log("WARN"):
+            formatted_msg = message.format(*args) if args else message
+            self._logger.warn(formatted_msg)
 
-            file_handler = logging.handlers.RotatingFileHandler(
-                file_path,
-                maxBytes=self.config.max_bytes,
-                backupCount=self.config.backup_count,
-                encoding="utf-8",
-            )
-            file_handler.setFormatter(formatter)
-            self.logger.addHandler(file_handler)
+    def error(self, message: str, *args: Any) -> None:
+        """记录错误级别日志"""
+        if self._logger and self._should_log("ERROR"):
+            formatted_msg = message.format(*args) if args else message
+            self._logger.error(formatted_msg)
 
-        # 防止日志传播到根记录器
-        self.logger.propagate = False
+    def critical(self, message: str, *args: Any) -> None:
+        """记录严重错误级别日志"""
+        if self._logger and self._should_log("FATAL"):
+            formatted_msg = message.format(*args) if args else message
+            self._logger.fatal(formatted_msg)
 
-    def debug(self, msg: str, **kwargs):
-        """调试级日志"""
-        self.logger.debug(msg, **kwargs)
+    def flush(self) -> None:
+        """刷新日志输出，确保写入到文件"""
+        # Logloom会自动处理刷新，这里添加一个延迟确保文件写入
+        import time
+        time.sleep(0.2)  # 增加延迟确保文件写入
+        
+        # 如果有文件路径，尝试强制刷新文件系统缓存
+        if self.config.file_path:
+            try:
+                import os
+                os.sync()  # 强制写入磁盘
+            except:
+                pass
 
-    def info(self, msg: str, **kwargs):
-        """信息级日志"""
-        self.logger.info(msg, **kwargs)
+    def set_level(self, level: str) -> None:
+        """设置日志级别"""
+        self.config.level = level.upper()
+        # 同步标准logger级别
+        if hasattr(self, 'logger'):
+            self.logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+        # 同步Logloom logger级别
+        if self._logger:
+            self._logger.set_level(level.upper())
+        self.logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+        # 重新初始化以应用新级别
+        self._initialized = False
+        self._ensure_initialized()
 
-    def warning(self, msg: str, **kwargs):
-        """警告级日志"""
-        self.logger.warning(msg, **kwargs)
-
-    def error(self, msg: str, **kwargs):
-        """错误级日志"""
-        self.logger.error(msg, **kwargs)
-
-    def critical(self, msg: str, **kwargs):
-        """严重错误级日志"""
-        self.logger.critical(msg, **kwargs)
-
-    def exception(self, msg: str, **kwargs):
-        """异常日志（包含堆栈跟踪）"""
-        self.logger.exception(msg, **kwargs)
+    def get_effective_level(self) -> str:
+        """获取当前有效的日志级别"""
+        return self.config.level
 
 
 class LoggerManager:
-    """日志管理器"""
+    """日志管理器 - 管理多个模块的日志记录器"""
 
-    def __init__(self, default_config: Optional[LogConfig] = None):
-        self.default_config = default_config or LogConfig()
-        self.loggers: Dict[str, ModuleLogger] = {}
-        self._setup_default_config()
+    def __init__(self) -> None:
+        self._loggers: Dict[str, ModuleLogger] = {}
+        self._global_config: Optional[LogConfig] = None
+        self.default_config = LogConfig()  # 兼容性属性
 
-    def _setup_default_config(self):
-        """设置默认配置"""
-        # 从环境变量读取配置
-        if "MCP_LOG_LEVEL" in os.environ:
-            self.default_config.level = os.environ["MCP_LOG_LEVEL"]
+    @property
+    def loggers(self) -> Dict[str, ModuleLogger]:
+        """获取所有日志记录器的字典 - 兼容性属性"""
+        return self._loggers
 
-        if "MCP_LOG_FILE" in os.environ:
-            self.default_config.file_path = os.environ["MCP_LOG_FILE"]
+    def get_logger(self, name: str) -> ModuleLogger:
+        """获取或创建指定模块的日志记录器"""
+        if name not in self._loggers:
+            config = self._global_config or self.default_config
+            
+            # 应用模块特定的配置
+            if config and name in config.modules:
+                module_config = config.modules[name]
+                config = LogConfig(
+                    level=module_config.get("level", config.level),
+                    language=module_config.get("language", config.language),
+                    file_path=module_config.get("file_path", config.file_path),
+                    max_size=module_config.get("max_size", config.max_size),
+                    console=module_config.get("console", config.console),
+                    modules=config.modules,
+                    module_levels=config.module_levels
+                )
+            elif config and name in config.module_levels:
+                # 如果在module_levels中有配置，使用该级别
+                config = LogConfig(
+                    level=config.module_levels[name],
+                    language=config.language,
+                    file_path=config.file_path,
+                    max_size=config.max_size,
+                    console=config.console,
+                    modules=config.modules,
+                    module_levels=config.module_levels
+                )
+            
+            self._loggers[name] = ModuleLogger(name, config)
+        
+        return self._loggers[name]
 
-        # 创建日志目录
-        if self.default_config.file_path:
-            log_dir = Path(self.default_config.file_path).parent
-            log_dir.mkdir(parents=True, exist_ok=True)
+    def configure_from_dict(self, config_dict: Dict[str, Any]) -> None:
+        """从字典配置日志系统 - 兼容性方法"""
+        self.configure(config_dict)
 
-    def get_logger(self, name: str, config: Optional[LogConfig] = None) -> ModuleLogger:
-        """获取指定模块的日志记录器"""
-        if name not in self.loggers:
-            logger_config = config or self.default_config
-            self.loggers[name] = ModuleLogger(name, logger_config)
-        return self.loggers[name]
+    def configure(self, config: Union[ConfigDict, str]) -> None:
+        """配置全局日志设置"""
+        if isinstance(config, str):
+            # 从YAML文件读取配置
+            with open(config, 'r', encoding='utf-8') as f:
+                config_dict = yaml.safe_load(f)
+        else:
+            config_dict = config
 
-    def configure_from_dict(self, config_dict: ConfigDict):
-        """从配置字典设置日志配置"""
+        # 解析配置
         log_config = config_dict.get("logging", {})
+        
+        self._global_config = LogConfig(
+            level=log_config.get("level", "INFO"),
+            language=log_config.get("language", "zh"),
+            file_path=log_config.get("file_path"),
+            max_size=log_config.get("max_size", 10 * 1024 * 1024),
+            console=log_config.get("console", True),
+            modules=log_config.get("modules", {}),
+            module_levels=log_config.get("module_levels", {})
+        )
+        
+        # 更新default_config
+        self.default_config = self._global_config
 
-        # 更新默认配置
-        if "level" in log_config:
-            self.default_config.level = log_config["level"]
+        # 重新配置所有现有的日志记录器
+        for name, logger in self._loggers.items():
+            # 应用模块特定的配置
+            config = self._global_config
+            if name in self._global_config.modules:
+                module_config = self._global_config.modules[name]
+                config = LogConfig(
+                    level=module_config.get("level", self._global_config.level),
+                    language=module_config.get("language", self._global_config.language),
+                    file_path=module_config.get("file_path", self._global_config.file_path),
+                    max_size=module_config.get("max_size", self._global_config.max_size),
+                    console=module_config.get("console", self._global_config.console),
+                    modules=self._global_config.modules,
+                    module_levels=self._global_config.module_levels
+                )
+            elif name in self._global_config.module_levels:
+                # 如果在module_levels中有配置，使用该级别
+                config = LogConfig(
+                    level=self._global_config.module_levels[name],
+                    language=self._global_config.language,
+                    file_path=self._global_config.file_path,
+                    max_size=self._global_config.max_size,
+                    console=self._global_config.console,
+                    modules=self._global_config.modules,
+                    module_levels=self._global_config.module_levels
+                )
+            
+            # 重置logger配置
+            logger.config = config
+            logger._ensure_initialized()
 
-        if "format" in log_config:
-            self.default_config.format = log_config["format"]
+    def set_level(self, module: str, level: str) -> None:
+        """设置特定模块的日志级别"""
+        if module in self._loggers:
+            self._loggers[module].set_level(level)
+        
+        # 更新全局配置中的模块设置
+        if self._global_config:
+            if module not in self._global_config.modules:
+                self._global_config.modules[module] = {}
+            self._global_config.modules[module]["level"] = level.upper()
+            # 同时更新module_levels
+            self._global_config.module_levels[module] = level.upper()
+        
+        # 更新default_config
+        if module not in self.default_config.modules:
+            self.default_config.modules[module] = {}
+        self.default_config.modules[module]["level"] = level.upper()
+        self.default_config.module_levels[module] = level.upper()
 
-        if "file_path" in log_config:
-            self.default_config.file_path = log_config["file_path"]
-
-        if "max_bytes" in log_config:
-            self.default_config.max_bytes = log_config["max_bytes"]
-
-        if "backup_count" in log_config:
-            self.default_config.backup_count = log_config["backup_count"]
-
-        if "enable_console" in log_config:
-            self.default_config.enable_console = log_config["enable_console"]
-
-        if "enable_file" in log_config:
-            self.default_config.enable_file = log_config["enable_file"]
-
-        if "module_levels" in log_config:
-            self.default_config.module_levels.update(log_config["module_levels"])
-
-        # 重新配置所有现有日志记录器
-        for logger in self.loggers.values():
-            logger.config = self.default_config
-            logger._setup_logger()
-
-    def set_level(self, name: str, level: str):
-        """设置指定模块的日志级别"""
-        self.default_config.module_levels[name] = level
-        if name in self.loggers:
-            self.loggers[name].config.module_levels[name] = level
-            self.loggers[name]._setup_logger()
-
-    def get_all_loggers(self) -> Dict[str, ModuleLogger]:
-        """获取所有日志记录器"""
-        return self.loggers.copy()
+    def cleanup(self) -> None:
+        """清理所有日志记录器"""
+        self._loggers.clear()
+        try:
+            ll.cleanup()
+        except Exception:
+            pass  # 忽略清理错误
 
 
 # 全局日志管理器实例
 _logger_manager = LoggerManager()
 
 
-def get_logger(name: str, config: Optional[LogConfig] = None) -> ModuleLogger:
-    """获取日志记录器的便捷函数"""
-    return _logger_manager.get_logger(name, config)
+def get_logger(name: str) -> ModuleLogger:
+    """获取日志记录器的全局函数"""
+    return _logger_manager.get_logger(name)
 
 
-def configure_logging(config_dict: ConfigDict):
-    """配置日志系统的便捷函数"""
-    _logger_manager.configure_from_dict(config_dict)
+def configure_logging(config: Union[ConfigDict, str]) -> None:
+    """配置日志系统的全局函数"""
+    _logger_manager.configure(config)
 
 
-def set_module_level(name: str, level: str):
-    """设置模块日志级别的便捷函数"""
-    _logger_manager.set_level(name, level)
+def set_module_level(module: str, level: str) -> None:
+    """设置模块日志级别的全局函数"""
+    _logger_manager.set_level(module, level)
 
 
-def setup_default_logging(
-    level: str = "INFO", log_file: Optional[str] = None, enable_console: bool = True
-):
-    """设置默认日志配置的便捷函数"""
-    config = LogConfig(level=level, file_path=log_file, enable_console=enable_console)
+def cleanup_logging() -> None:
+    """清理日志系统的全局函数"""
+    _logger_manager.cleanup()
 
-    global _logger_manager
-    _logger_manager = LoggerManager(config)
+
+# 导出主要接口
+__all__ = [
+    "LogConfig",
+    "ModuleLogger", 
+    "LoggerManager",
+    "get_logger",
+    "configure_logging",
+    "set_module_level",
+    "cleanup_logging"
+]

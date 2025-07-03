@@ -16,7 +16,7 @@ from .base import RoutingError
 class RequestRouter:
     """Routes requests to appropriate service modules."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._services: Dict[str, ServiceModule] = {}
         self._tool_registry: Dict[str, str] = {}  # tool_name -> service_name
         self._service_tools: Dict[str, Set[str]] = {}  # service_name -> tool_names
@@ -74,8 +74,10 @@ class RequestRouter:
         if not service_name:
             return ToolCallResponse(
                 success=False,
+                result=None,
                 error=f"Tool '{tool_name}' not found",
                 request_id=request.request_id,
+                execution_time=0.0,
             )
 
         # Get service
@@ -83,8 +85,10 @@ class RequestRouter:
         if not service:
             return ToolCallResponse(
                 success=False,
-                error=f"Service '{service_name}' not available",
+                result=None,
+                error=f"Service '{service_name}' not found",
                 request_id=request.request_id,
+                execution_time=0.0,
             )
 
         # Execute tool call
@@ -100,10 +104,13 @@ class RequestRouter:
             return response
 
         except Exception as e:
+            execution_time = asyncio.get_event_loop().time() - start_time
             return ToolCallResponse(
                 success=False,
+                result=None,
                 error=f"Tool execution failed: {str(e)}",
                 request_id=request.request_id,
+                execution_time=execution_time,
             )
 
     def get_available_tools(self) -> List[ToolDefinition]:
@@ -153,23 +160,24 @@ class RequestRouter:
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on all services."""
-        health_info = {
+        health_info: Dict[str, Any] = {
             "router_status": "healthy",
             "registered_services": len(self._services),
             "registered_tools": len(self._tool_registry),
             "services": {},
         }
 
+        services_info: Dict[str, Any] = health_info["services"]
         for service_name, service in self._services.items():
             try:
                 # Basic health check - check if service has tools
                 tools = service.get_tools()
-                health_info["services"][service_name] = {
+                services_info[service_name] = {
                     "status": "healthy",
                     "tool_count": len(tools),
                 }
             except Exception as e:
-                health_info["services"][service_name] = {
+                services_info[service_name] = {
                     "status": "unhealthy",
                     "error": str(e),
                 }

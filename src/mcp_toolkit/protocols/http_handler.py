@@ -7,7 +7,7 @@ and integration with JSON-RPC processor.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set
+from typing import Callable, Dict, List, Optional, Set
 
 from aiohttp import hdrs, web
 from aiohttp.web_request import Request
@@ -83,7 +83,7 @@ class HTTPTransportHandler(ProtocolHandler):
         """Check if the server is running."""
         return self._is_running
 
-    def register_method(self, method_name: str, handler: callable) -> None:
+    def register_method(self, method_name: str, handler: Callable) -> None:
         """Register a JSON-RPC method handler."""
         self.jsonrpc_processor.register_method(method_name, handler)
 
@@ -93,6 +93,8 @@ class HTTPTransportHandler(ProtocolHandler):
 
     def _setup_routes(self) -> None:
         """Setup HTTP routes."""
+        if self._app is None:
+            raise RuntimeError("Application not initialized")
         self._app.router.add_post("/mcp", self._handle_mcp_request)
         self._app.router.add_get("/health", self._handle_health_check)
         self._app.router.add_get("/methods", self._handle_methods_list)
@@ -100,12 +102,14 @@ class HTTPTransportHandler(ProtocolHandler):
 
     def _setup_middleware(self) -> None:
         """Setup middleware chain."""
+        if self._app is None:
+            raise RuntimeError("Application not initialized")
         self._app.middlewares.append(self._cors_middleware)
         self._app.middlewares.append(self._error_middleware)
         self._app.middlewares.append(self._logging_middleware)
 
     @web.middleware
-    async def _cors_middleware(self, request: Request, handler) -> Response:
+    async def _cors_middleware(self, request: Request, handler: Callable) -> Response:
         """Handle CORS headers."""
         # Handle preflight requests
         if request.method == "OPTIONS":
@@ -127,10 +131,11 @@ class HTTPTransportHandler(ProtocolHandler):
         return response
 
     @web.middleware
-    async def _error_middleware(self, request: Request, handler) -> Response:
+    async def _error_middleware(self, request: Request, handler: Callable) -> Response:
         """Handle errors and convert to appropriate HTTP responses."""
         try:
-            return await handler(request)
+            response = await handler(request)
+            return response  # type: ignore
         except web.HTTPException:
             raise
         except ProtocolError as e:
@@ -143,7 +148,7 @@ class HTTPTransportHandler(ProtocolHandler):
             return web.json_response({"error": "Internal server error"}, status=500)
 
     @web.middleware
-    async def _logging_middleware(self, request: Request, handler) -> Response:
+    async def _logging_middleware(self, request: Request, handler: Callable) -> Response:
         """Log requests and responses."""
         start_time = asyncio.get_event_loop().time()
 
@@ -154,7 +159,7 @@ class HTTPTransportHandler(ProtocolHandler):
         duration = asyncio.get_event_loop().time() - start_time
         self.logger.debug(f"Response: {response.status} in {duration:.3f}s")
 
-        return response
+        return response  # type: ignore
 
     async def _handle_mcp_request(self, request: Request) -> Response:
         """Handle MCP JSON-RPC requests."""

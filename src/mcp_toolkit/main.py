@@ -35,7 +35,7 @@ from .protocols.router import RequestRouter
 @click.option(
     "--locale", "-l", default="zh_CN", help="Interface language (zh_CN/en_US)"
 )
-def main(config: Path, host: str, port: int, debug: bool, locale: str):
+def main(config: Path, host: str, port: int, debug: bool, locale: str) -> None:
     """Start the MCP Toolkit server."""
     # 初始化国际化
     configure_i18n(I18nConfig(default_locale=locale))
@@ -51,8 +51,7 @@ def main(config: Path, host: str, port: int, debug: bool, locale: str):
     log_config = LogConfig(
         level="DEBUG" if debug else "INFO",
         file_path="logs/mcp_toolkit.log",
-        enable_console=True,
-        enable_file=True,
+        console=True,
     )
     configure_logging(config_data)
 
@@ -74,7 +73,7 @@ def main(config: Path, host: str, port: int, debug: bool, locale: str):
         logger.error(f"❌ 服务器启动失败: {e}")
 
 
-async def start_server(host: str, port: int, debug: bool):
+async def start_server(host: str, port: int, debug: bool) -> None:
     """启动HTTP服务器"""
     logger = get_logger("mcp_toolkit.server")
 
@@ -83,10 +82,10 @@ async def start_server(host: str, port: int, debug: bool):
     middleware = MiddlewareChain()
 
     # 创建HTTP处理器
-    handler = HTTPTransportHandler(router, middleware)
+    handler = HTTPTransportHandler(host=host, port=port)
 
     # 启动服务器
-    await handler.start_server(host, port)
+    await handler.start()
     logger.info(f"✅ HTTP服务器已启动: http://{host}:{port}")
 
     # 保持服务器运行
@@ -95,7 +94,7 @@ async def start_server(host: str, port: int, debug: bool):
             await asyncio.sleep(1)
     except KeyboardInterrupt:
         logger.info("🛑 正在停止服务器...")
-        await handler.stop_server()
+        await handler.stop()
 
 
 if __name__ == "__main__":

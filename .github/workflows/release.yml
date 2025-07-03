@@ -24,7 +24,12 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --group dev
+      run: |
+        # 安装系统依赖（Logloom需要）
+        sudo apt-get update
+        sudo apt-get install -y build-essential libyaml-dev pkg-config python3-dev
+        # 使用uv安装所有依赖（包括Logloom）
+        uv sync --group dev
     
     - name: Run tests
       run: |
@@ -48,7 +53,12 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --group dev
+      run: |
+        # 安装系统依赖（Logloom需要）
+        sudo apt-get update
+        sudo apt-get install -y build-essential libyaml-dev pkg-config python3-dev
+        # 使用uv安装所有依赖（包括Logloom）
+        uv sync --group dev
     
     - name: Build package
       run: |

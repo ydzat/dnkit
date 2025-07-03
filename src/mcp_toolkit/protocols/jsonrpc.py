@@ -8,7 +8,7 @@ according to the Model Context Protocol specification.
 import asyncio
 import json
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 from pydantic import ValidationError as PydanticValidationError
@@ -66,10 +66,10 @@ class JSONRPCProcessor:
     TOOL_EXECUTION_ERROR = -32002
     PERMISSION_DENIED = -32003
 
-    def __init__(self):
-        self._method_handlers: Dict[str, callable] = {}
+    def __init__(self) -> None:
+        self._method_handlers: Dict[str, Callable] = {}
 
-    def register_method(self, method_name: str, handler: callable) -> None:
+    def register_method(self, method_name: str, handler: Callable) -> None:
         """Register a method handler."""
         self._method_handlers[method_name] = handler
 
@@ -182,7 +182,7 @@ class JSONRPCProcessor:
 
     def _create_success_response(self, request_id: Union[str, int], result: Any) -> str:
         """Create a successful JSON-RPC response."""
-        response = JSONRPCResponse(result=result, id=request_id)
+        response = JSONRPCResponse(result=result, error=None, id=request_id)
         return response.model_dump_json()
 
     def _create_error_response(
@@ -197,7 +197,7 @@ class JSONRPCProcessor:
             code=error_code, message=error_message, data=error_data
         )
 
-        response = JSONRPCResponse(error=error_obj.model_dump(), id=request_id)
+        response = JSONRPCResponse(result=None, error=error_obj.model_dump(), id=request_id)
         return response.model_dump_json()
 
     def get_registered_methods(self) -> List[str]:

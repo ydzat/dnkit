@@ -8,7 +8,7 @@ authentication, and other cross-cutting concerns.
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 from ..core.types import ToolCallRequest, ToolCallResponse
 
@@ -18,7 +18,7 @@ class Middleware(ABC):
 
     @abstractmethod
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable
+        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
     ) -> ToolCallResponse:
         """Process request and call next handler in chain."""
         pass
@@ -27,13 +27,13 @@ class Middleware(ABC):
 class LoggingMiddleware(Middleware):
     """Middleware for request/response logging."""
 
-    def __init__(self, logger=None):
+    def __init__(self, logger: Any = None) -> None:
         import logging
 
         self.logger = logger or logging.getLogger(__name__)
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable
+        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
     ) -> ToolCallResponse:
         """Log request and response."""
         start_time = time.time()
@@ -73,11 +73,11 @@ class LoggingMiddleware(Middleware):
 class ValidationMiddleware(Middleware):
     """Middleware for request validation."""
 
-    def __init__(self, required_fields: Optional[List[str]] = None):
+    def __init__(self, required_fields: Optional[List[str]] = None) -> None:
         self.required_fields = required_fields or ["tool_name"]
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable
+        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
     ) -> ToolCallResponse:
         """Validate request before processing."""
         # Check required fields
@@ -85,8 +85,10 @@ class ValidationMiddleware(Middleware):
             if not hasattr(request, field) or getattr(request, field) is None:
                 return ToolCallResponse(
                     success=False,
+                    result=None,
                     error=f"Missing required field: {field}",
                     request_id=request.request_id,
+                    execution_time=0.0,
                 )
 
         # Validate tool name format
@@ -94,8 +96,10 @@ class ValidationMiddleware(Middleware):
         if not tool_name or not isinstance(tool_name, str):
             return ToolCallResponse(
                 success=False,
+                result=None,
                 error="Tool name must be a non-empty string",
                 request_id=request.request_id,
+                execution_time=0.0,
             )
 
         # Check for invalid characters
@@ -104,8 +108,10 @@ class ValidationMiddleware(Middleware):
         ):
             return ToolCallResponse(
                 success=False,
+                result=None,
                 error="Tool name contains invalid characters",
                 request_id=request.request_id,
+                execution_time=0.0,
             )
 
         return await next_handler(request)
@@ -114,13 +120,13 @@ class ValidationMiddleware(Middleware):
 class RateLimitingMiddleware(Middleware):
     """Middleware for rate limiting."""
 
-    def __init__(self, max_requests_per_minute: int = 60):
+    def __init__(self, max_requests_per_minute: int = 60) -> None:
         self.max_requests = max_requests_per_minute
         self.request_timestamps: Dict[str, List[float]] = {}
         self._lock = asyncio.Lock()
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable
+        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
     ) -> ToolCallResponse:
         """Apply rate limiting based on session ID."""
         session_id = request.session_id or "default"
@@ -141,8 +147,10 @@ class RateLimitingMiddleware(Middleware):
             if len(self.request_timestamps[session_id]) >= self.max_requests:
                 return ToolCallResponse(
                     success=False,
+                    result=None,
                     error="Rate limit exceeded. Too many requests per minute.",
                     request_id=request.request_id,
+                    execution_time=0.0,
                 )
 
             # Record current request
@@ -154,11 +162,11 @@ class RateLimitingMiddleware(Middleware):
 class PermissionMiddleware(Middleware):
     """Middleware for permission checking."""
 
-    def __init__(self, permission_checker: Optional[Callable] = None):
+    def __init__(self, permission_checker: Optional[Callable] = None) -> None:
         self.permission_checker = permission_checker
 
     async def process_request(
-        self, request: ToolCallRequest, next_handler: Callable
+        self, request: ToolCallRequest, next_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
     ) -> ToolCallResponse:
         """Check permissions before tool execution."""
         if self.permission_checker:
@@ -167,14 +175,18 @@ class PermissionMiddleware(Middleware):
                 if not allowed:
                     return ToolCallResponse(
                         success=False,
+                        result=None,
                         error="Permission denied for this tool",
                         request_id=request.request_id,
+                        execution_time=0.0,
                     )
             except Exception as e:
                 return ToolCallResponse(
                     success=False,
+                    result=None,
                     error=f"Permission check failed: {str(e)}",
                     request_id=request.request_id,
+                    execution_time=0.0,
                 )
 
         return await next_handler(request)
@@ -183,7 +195,7 @@ class PermissionMiddleware(Middleware):
 class MiddlewareChain:
     """Manages and executes middleware chain."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.middlewares: List[Middleware] = []
 
     def add_middleware(self, middleware: Middleware) -> None:
@@ -197,14 +209,14 @@ class MiddlewareChain:
         ]
 
     async def process(
-        self, request: ToolCallRequest, final_handler: Callable
+        self, request: ToolCallRequest, final_handler: Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]
     ) -> ToolCallResponse:
         """Process request through middleware chain."""
         if not self.middlewares:
             return await final_handler(request)
 
         # Create middleware chain
-        async def create_handler(index: int) -> Callable:
+        async def create_handler(index: int) -> Callable[[ToolCallRequest], Awaitable[ToolCallResponse]]:
             if index >= len(self.middlewares):
                 return final_handler
 

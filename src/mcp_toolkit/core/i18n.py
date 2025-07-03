@@ -30,7 +30,7 @@ class TranslationManager:
         self.fallback_translations: Dict[str, Any] = {}
         self._load_translations()
 
-    def _load_translations(self):
+    def _load_translations(self) -> None:
         """加载翻译文件"""
         locale_path = Path(self.config.locale_dir)
 
@@ -52,7 +52,7 @@ class TranslationManager:
             with open(fallback_file, "r", encoding="utf-8") as f:
                 self.fallback_translations = json.load(f)
 
-    def _create_default_translations(self):
+    def _create_default_translations(self) -> None:
         """创建默认翻译文件"""
         locale_dir = Path(self.config.locale_dir)
         locale_dir.mkdir(parents=True, exist_ok=True)
@@ -186,13 +186,13 @@ class TranslationManager:
         elif self.config.fallback_locale == "en_US":
             self.fallback_translations = en_translations
 
-    def set_locale(self, locale: str):
+    def set_locale(self, locale: str) -> None:
         """设置当前语言"""
         self.current_locale = locale
         if self.config.auto_reload:
             self._load_translations()
 
-    def get_text(self, key: str, **kwargs) -> str:
+    def get_text(self, key: str, **kwargs: Any) -> str:
         """
         获取翻译文本
 
@@ -235,7 +235,7 @@ class TranslationManager:
 
         return current if isinstance(current, str) else None
 
-    def add_translation(self, locale: str, key: str, text: str):
+    def add_translation(self, locale: str, key: str, text: str) -> None:
         """添加翻译"""
         if locale not in self.translations:
             self.translations[locale] = {}
@@ -269,22 +269,22 @@ class TranslationManager:
 _translation_manager = TranslationManager()
 
 
-def set_locale(locale: str):
+def set_locale(locale: str) -> None:
     """设置当前语言的便捷函数"""
     _translation_manager.set_locale(locale)
 
 
-def get_text(key: str, **kwargs) -> str:
+def get_text(key: str, **kwargs: Any) -> str:
     """获取翻译文本的便捷函数"""
     return _translation_manager.get_text(key, **kwargs)
 
 
-def _(key: str, **kwargs) -> str:
+def _(key: str, **kwargs: Any) -> str:
     """获取翻译文本的简短别名"""
     return get_text(key, **kwargs)
 
 
-def configure_i18n(config: I18nConfig):
+def configure_i18n(config: I18nConfig) -> None:
     """配置国际化系统"""
     global _translation_manager
     _translation_manager = TranslationManager(config)

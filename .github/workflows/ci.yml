@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
     
     steps:
     - uses: actions/checkout@v4
@@ -26,6 +26,16 @@ jobs:
     
     - name: Install dependencies
       run: |
+        # 安装系统依赖（Logloom需要）
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libssl-dev zlib1g-dev
+        # 克隆并构建Logloom
+        git clone https://github.com/ydzat/Logloom.git /tmp/logloom
+        cd /tmp/logloom
+        uv sync
+        uv run python -c "import logloom_py; print('Logloom installed successfully')"
+        cd ${{ github.workspace }}
+        # 安装项目依赖
         uv sync --group dev
     
     - name: Lint with flake8
@@ -76,7 +86,18 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --group dev
+      run: |
+        # 安装系统依赖（Logloom需要）
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libssl-dev zlib1g-dev
+        # 克隆并构建Logloom
+        git clone https://github.com/ydzat/Logloom.git /tmp/logloom
+        cd /tmp/logloom
+        uv sync
+        uv run python -c "import logloom_py; print('Logloom installed successfully')"
+        cd ${{ github.workspace }}
+        # 安装项目依赖
+        uv sync --group dev
     
     - name: Test MCP protocol compliance
       run: |
@@ -97,7 +118,18 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --group dev
+      run: |
+        # 安装系统依赖（Logloom需要）
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libssl-dev zlib1g-dev
+        # 克隆并构建Logloom
+        git clone https://github.com/ydzat/Logloom.git /tmp/logloom
+        cd /tmp/logloom
+        uv sync
+        uv run python -c "import logloom_py; print('Logloom installed successfully')"
+        cd ${{ github.workspace }}
+        # 安装项目依赖
+        uv sync --group dev
     
     - name: Check for known security vulnerabilities
       run: |
@@ -120,7 +152,18 @@ jobs:
       run: uv python install 3.12
     
     - name: Install dependencies
-      run: uv sync --group dev
+      run: |
+        # 安装系统依赖（Logloom需要）
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libssl-dev zlib1g-dev
+        # 克隆并构建Logloom
+        git clone https://github.com/ydzat/Logloom.git /tmp/logloom
+        cd /tmp/logloom
+        uv sync
+        uv run python -c "import logloom_py; print('Logloom installed successfully')"
+        cd ${{ github.workspace }}
+        # 安装项目依赖
+        uv sync --group dev
     
     - name: Build package
       run: |
