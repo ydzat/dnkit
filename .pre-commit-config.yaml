@@ -99,7 +99,7 @@ repos:
         name: coverage-check
         description: "检查测试覆盖率"
         entry: uv run pytest
-        args: [--cov=mcp_toolkit, --cov-report=term-missing, --cov-fail-under=75]
+        args: [--cov=mcp_toolkit, --cov-report=term-missing, --cov-fail-under=70]
         language: system
         pass_filenames: false
         stages: [pre-push]

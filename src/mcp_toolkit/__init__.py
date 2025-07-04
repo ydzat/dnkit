@@ -5,8 +5,8 @@ for building MCP-compliant applications.
 """
 
 __version__ = "0.1.0"
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+__author__ = "ydzat"
+__email__ = "ydzat@live.com"
 
 # Core exports
 from .core.interfaces import ModuleInterface, ServiceModule
