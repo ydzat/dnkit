@@ -315,7 +315,7 @@ class FileSearchTool(BaseSearchTool):
 
             def search_directory(current_path: str, current_depth: int = 0) -> None:
                 """递归搜索目录"""
-                nonlocal total_searched, results
+                nonlocal total_searched
 
                 if current_depth > max_depth or len(results) >= max_results:
                     return
@@ -718,7 +718,7 @@ class ContentSearchTool(BaseSearchTool):
 
             def search_directory(current_path: str) -> None:
                 """递归搜索目录"""
-                nonlocal files_searched, results
+                nonlocal files_searched
 
                 if len(results) >= max_results:
                     return
