@@ -1,0 +1,226 @@
+# MCP工具集基础工具配置
+tools:
+  # 全局设置
+  global:
+    # 执行控制
+    max_concurrent_executions: 50
+    default_timeout_seconds: 30
+    max_execution_time_seconds: 3600  # 1小时
+
+    # 缓存设置
+    cache:
+      enabled: true
+      max_size_mb: 256
+      default_ttl_seconds: 300  # 5分钟
+      cleanup_interval_seconds: 600  # 10分钟
+
+    # 性能监控
+    monitoring:
+      enabled: true
+      metrics_collection_interval: 10
+      health_check_interval: 60
+
+    # 错误处理
+    error_handling:
+      max_retry_attempts: 3
+      retry_base_delay: 1.0
+      retry_max_delay: 30.0
+      log_all_errors: true
+
+  # 分类特定配置
+  categories:
+    # 文件操作工具
+    file_operations:
+      enabled: true
+      settings:
+        # 安全限制
+        max_file_size_bytes: 104857600  # 100MB
+        max_files_per_operation: 1000
+
+        # 路径控制
+        allowed_paths:
+          - "/workspace"
+          - "/tmp/mcp-toolkit"
+          - "/home/user/projects"
+          - "./data"
+
+        forbidden_paths:
+          - "/etc"
+          - "/bin"
+          - "/usr/bin"
+          - "/sys"
+          - "/proc"
+          - "/root"
+
+        # 文件类型限制
+        allowed_extensions:
+          - ".txt"
+          - ".md"
+          - ".json"
+          - ".yaml"
+          - ".yml"
+          - ".py"
+          - ".js"
+          - ".ts"
+          - ".html"
+          - ".css"
+          - ".sql"
+          - ".sh"
+          - ".log"
+          - ".csv"
+          - ".xml"
+
+        forbidden_extensions:
+          - ".exe"
+          - ".dll"
+          - ".so"
+          - ".dylib"
+
+        # 备份设置
+        backup:
+          enabled: true
+          backup_directory: "/tmp/mcp-toolkit/backups"
+          max_backup_age_days: 7
+
+        # 性能优化
+        buffer_size_bytes: 65536  # 64KB
+        use_memory_mapping: true
+
+    # 终端操作工具
+    terminal:
+      enabled: true
+      settings:
+        # 安全设置
+        enable_shell: false
+        log_all_commands: true
+        sandbox_enabled: true
+        max_execution_time_seconds: 300  # 5分钟
+
+        # 命令控制
+        allowed_commands: []  # 空数组表示使用默认允许列表
+        # 默认允许的安全命令：ls, cat, echo, pwd, cd, mkdir, touch, cp, mv, grep, find, sort, head, tail 等
+
+        forbidden_commands:
+          - "rm"
+          - "rmdir"
+          - "del"
+          - "format"
+          - "fdisk"
+          - "shutdown"
+          - "reboot"
+          - "halt"
+          - "sudo"
+          - "su"
+          - "passwd"
+          - "useradd"
+          - "userdel"
+          - "usermod"
+          - "chmod"
+          - "chown"
+          - "mount"
+          - "umount"
+
+        # 执行环境
+        working_directory_restrictions:
+          - "/workspace"
+          - "/tmp/mcp-toolkit"
+          - "/home/user/projects"
+
+        environment_variable_whitelist:
+          - "PATH"
+          - "HOME"
+          - "USER"
+          - "SHELL"
+          - "TERM"
+          - "LANG"
+
+    # 网络操作工具
+    network:
+      enabled: true
+      settings:
+        # 请求限制
+        max_response_size_mb: 50
+        max_request_size_mb: 10
+        default_timeout_seconds: 30
+        max_redirects: 5
+
+        # 域名控制
+        allowed_domains: []  # 空数组表示允许所有（除了禁止的）
+        forbidden_domains:
+          - "localhost"
+          - "127.0.0.1"
+          - "0.0.0.0"
+          - "169.254.0.0/16"  # 链路本地地址
+          - "10.0.0.0/8"      # 私有网络
+          - "172.16.0.0/12"   # 私有网络
+          - "192.168.0.0/16"  # 私有网络
+
+        # 端口控制
+        allowed_ports: []  # 空数组表示允许常用端口
+        forbidden_ports:
+          - 22    # SSH
+          - 23    # Telnet
+          - 25    # SMTP
+          - 53    # DNS
+          - 135   # RPC
+          - 139   # NetBIOS
+          - 445   # SMB
+          - 1433  # SQL Server
+          - 3306  # MySQL
+          - 5432  # PostgreSQL
+
+        # HTTP特定设置
+        user_agent: "MCP-Toolkit/1.0"
+        verify_ssl: true
+        allow_redirects: true
+
+        # 缓存设置
+        cache_responses: true
+        cache_ttl_seconds: 300
+
+    # 搜索工具
+    search:
+      enabled: true
+      settings:
+        # 搜索限制
+        max_results: 10000
+        max_file_size_bytes: 10485760  # 10MB
+        max_search_depth: 20
+        default_context_lines: 2
+
+        # 路径控制
+        allowed_paths:
+          - "/workspace"
+          - "/tmp/mcp-toolkit"
+          - "/home/user/projects"
+
+        forbidden_paths:
+          - "/etc"
+          - "/bin"
+          - "/usr/bin"
+          - "/sys"
+          - "/proc"
+          - "/root"
+
+        # 文件类型过滤
+        searchable_extensions:
+          - ".txt"
+          - ".md"
+          - ".py"
+          - ".js"
+          - ".ts"
+          - ".html"
+          - ".css"
+          - ".json"
+          - ".yaml"
+          - ".yml"
+          - ".xml"
+          - ".sql"
+          - ".sh"
+          - ".log"
+          - ".csv"
+
+        # 搜索优化
+        use_parallel_search: true
+        max_parallel_workers: 4
+        enable_content_indexing: false  # 暂不实现全文索引

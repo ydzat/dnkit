@@ -221,6 +221,18 @@ class ModuleLogger:
             formatted_msg = message.format(*args) if args else message
             self._logger.fatal(formatted_msg)
 
+    def exception(self, message: str, *args: Any) -> None:
+        """记录异常级别日志，包含堆栈信息"""
+        import traceback
+
+        if self._logger and self._should_log("ERROR"):
+            formatted_msg = message.format(*args) if args else message
+            # 添加异常堆栈信息
+            exc_info = traceback.format_exc()
+            if exc_info and exc_info.strip() != "NoneType: None":
+                formatted_msg = f"{formatted_msg}\n{exc_info}"
+            self._logger.error(formatted_msg)
+
     def flush(self) -> None:
         """刷新日志输出，确保写入到文件"""
         # Logloom会自动处理刷新，这里添加一个延迟确保文件写入
