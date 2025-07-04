@@ -187,7 +187,7 @@ class BasicToolsService(ServiceModule):
         tool = self.registry.get_tool(tool_name)
         if tool:
             definition = tool.get_definition()
-            return cast(Optional[Dict[Any, Any]], definition.input_schema)
+            return cast(Optional[Dict[Any, Any]], definition.parameters)
         return None
 
     async def call_tool(self, request: ToolCallRequest) -> ToolCallResponse:
@@ -209,10 +209,26 @@ class BasicToolsService(ServiceModule):
 
         # 转换结果格式
         if result.success:
-            return ToolCallResponse(success=True, result=result.content)
+            return ToolCallResponse(
+                success=True,
+                result=result.content,
+                error=None,
+                request_id=request.request_id,
+                execution_time=(
+                    result.metadata.execution_time if result.metadata else None
+                ),
+            )
         else:
             error_message = result.error.message if result.error else "未知错误"
-            return ToolCallResponse(success=False, error=error_message)
+            return ToolCallResponse(
+                success=False,
+                result=None,
+                error=error_message,
+                request_id=request.request_id,
+                execution_time=(
+                    result.metadata.execution_time if result.metadata else None
+                ),
+            )
 
     # 兼容性方法 - 保持向后兼容
     def get_supported_tools(self) -> List[ToolDefinition]:

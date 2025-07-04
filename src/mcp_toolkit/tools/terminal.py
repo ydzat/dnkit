@@ -149,7 +149,7 @@ class RunCommandTool(BaseTerminalTool):
         return ToolDefinition(
             name="run_command",
             description="在终端中执行命令并返回结果",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "command": {
@@ -440,7 +440,7 @@ class GetEnvironmentTool(BaseTerminalTool):
         return ToolDefinition(
             name="get_environment",
             description="获取当前环境变量信息",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "variable": {
@@ -523,7 +523,7 @@ class SetWorkingDirectoryTool(BaseTerminalTool):
         return ToolDefinition(
             name="set_working_directory",
             description="设置当前工作目录",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "path": {"type": "string", "description": "目录路径"},

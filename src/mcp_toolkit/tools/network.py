@@ -162,7 +162,7 @@ class HttpRequestTool(BaseNetworkTool):
         return ToolDefinition(
             name="http_request",
             description="发送HTTP/HTTPS请求并返回响应",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "url": {
@@ -551,7 +551,7 @@ class DnsLookupTool(BaseNetworkTool):
         return ToolDefinition(
             name="dns_lookup",
             description="执行DNS查询获取域名解析信息",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "hostname": {
@@ -607,7 +607,7 @@ class DnsLookupTool(BaseNetworkTool):
                 try:
                     # 直接调用而不使用 executor，避免类型复杂性
                     ipv6_result = socket.getaddrinfo(hostname, None, socket.AF_INET6)
-                    addresses = [info[4][0] for info in ipv6_result]
+                    addresses = [str(info[4][0]) for info in ipv6_result]
                     records = {"hostname": hostname, "addresses": addresses}
                 except socket.gaierror as e:
                     records = {"hostname": hostname, "error": str(e)}

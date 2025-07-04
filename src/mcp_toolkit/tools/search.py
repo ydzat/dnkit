@@ -122,7 +122,7 @@ class FileSearchTool(BaseSearchTool):
         return ToolDefinition(
             name="file_search",
             description="在指定目录中搜索文件",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "search_path": {
@@ -466,7 +466,7 @@ class ContentSearchTool(BaseSearchTool):
         return ToolDefinition(
             name="content_search",
             description="在文件内容中搜索指定文本",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "search_path": {

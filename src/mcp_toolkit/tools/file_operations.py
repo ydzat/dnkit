@@ -129,7 +129,7 @@ class ReadFileTool(BaseFileOperationTool):
         return ToolDefinition(
             name="read_file",
             description="读取指定文件的内容，支持文本和二进制文件",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "path": {
@@ -351,7 +351,7 @@ class WriteFileTool(BaseFileOperationTool):
         return ToolDefinition(
             name="write_file",
             description="写入内容到指定文件，支持创建新文件和覆盖现有文件",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "path": {"type": "string", "description": "文件路径"},
@@ -562,7 +562,7 @@ class ListFilesTool(BaseFileOperationTool):
         return ToolDefinition(
             name="list_files",
             description="列出目录中的文件和子目录",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "path": {
@@ -771,7 +771,7 @@ class CreateDirectoryTool(BaseFileOperationTool):
         return ToolDefinition(
             name="create_directory",
             description="创建目录，支持递归创建父目录",
-            input_schema={
+            parameters={
                 "type": "object",
                 "properties": {
                     "path": {"type": "string", "description": "目录路径"},
