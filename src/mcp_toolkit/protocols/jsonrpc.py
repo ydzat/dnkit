@@ -182,7 +182,7 @@ class JSONRPCProcessor:
 
     def _create_success_response(self, request_id: Union[str, int], result: Any) -> str:
         """Create a successful JSON-RPC response."""
-        response = JSONRPCResponse(result=result, id=request_id)
+        response = JSONRPCResponse(result=result, error=None, id=request_id)
         return str(response.model_dump_json(exclude_none=True))
 
     def _create_error_response(

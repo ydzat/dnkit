@@ -191,6 +191,7 @@ async def start_server(
                 tool_name=tool_name,
                 arguments=arguments,
                 request_id=f"req_{asyncio.get_event_loop().time()}",
+                session_id=None,
             )
 
             # 执行工具调用

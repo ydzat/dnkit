@@ -47,13 +47,16 @@ repos:
         ]
         files: ^(src/|tests/).*\.py$
 
-  # 类型检查 - mypy
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+  # 本地检查工具
+  - repo: local
     hooks:
+      # 类型检查 - mypy (使用本地环境)
       - id: mypy
-        additional_dependencies: [types-PyYAML, types-aiofiles]
+        name: mypy
+        description: "MyPy: 静态类型检查"
+        entry: uv run mypy
         args: [
+          src/,
           --ignore-missing-imports,
           --disallow-untyped-defs,
           --no-implicit-optional,
@@ -61,6 +64,9 @@ repos:
           --warn-unused-ignores,
           --show-error-codes
         ]
+        language: system
+        types: [python]
+        pass_filenames: false
         files: ^src/.*\.py$
 
   # 安全检查 - bandit

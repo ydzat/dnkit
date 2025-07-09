@@ -9,7 +9,7 @@ import asyncio
 import json
 import logging
 import uuid
-from typing import Any, Dict, Optional, Set, Union
+from typing import Any, Dict, Optional, Set, Union, cast
 
 from aiohttp import hdrs, web
 from aiohttp.web_request import Request
@@ -229,7 +229,8 @@ class SSETransportHandler(ProtocolHandler):
                         },
                     )
 
-                return await handler(request)
+                response = await handler(request)
+                return cast(web.Response, response)
 
             except Exception as e:
                 self.logger.error(f"Error handling request from {request.remote}: {e}")
