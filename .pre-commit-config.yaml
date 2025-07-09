@@ -88,6 +88,16 @@ repos:
         args: [scan]
         language: system
         pass_filenames: false
+
+      # 单元测试 (暂时禁用，需要提高测试覆盖率)
+      # - id: pytest
+      #   name: pytest
+      #   description: "Pytest: 运行单元测试"
+      #   entry: uv run pytest
+      #   args: [tests/unit/, -v, --tb=short]
+      #   language: system
+      #   pass_filenames: false
+      #   types: [python]
         stages: [manual]  # 手动运行
 
       # 测试检查 (仅在push时运行)

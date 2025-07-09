@@ -203,10 +203,8 @@ class HTTPTransportHandler(ProtocolHandler):
                     text=response_json, content_type="application/json", headers=headers
                 )
             else:
-                # For notification requests, return empty JSON response
-                return web.Response(
-                    text="{}", content_type="application/json", headers=headers
-                )
+                # For notification requests, return 204 No Content
+                return web.Response(status=204, headers=headers)
 
         except Exception as e:
             self.logger.error(f"Error handling MCP request: {str(e)}")
