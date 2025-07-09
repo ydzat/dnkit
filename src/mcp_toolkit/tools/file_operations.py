@@ -35,12 +35,6 @@ class BaseFileOperationTool(BaseTool):
     def __init__(self, config: Optional[ConfigDict] = None):
         super().__init__(config)
 
-        # 添加调试日志
-        from ..core.logging import get_logger
-
-        logger = get_logger(__name__)
-        logger.debug(f"BaseFileOperationTool 初始化，配置: {self.config}")
-
         self.allowed_paths = self.config.get(
             "allowed_paths", ["/workspace", "/tmp/mcp-toolkit"]  # nosec B108
         )
@@ -51,10 +45,6 @@ class BaseFileOperationTool(BaseTool):
         self.allowed_extensions = self.config.get("allowed_extensions", [])
         self.forbidden_extensions = self.config.get(
             "forbidden_extensions", [".exe", ".dll", ".so"]
-        )
-
-        logger.debug(
-            f"BaseFileOperationTool 配置完成，allowed_paths: {self.allowed_paths}"
         )
 
     def _is_path_safe(self, normalized_path: str) -> bool:
@@ -103,13 +93,6 @@ class BaseFileOperationTool(BaseTool):
 
     def _validate_path(self, path: str) -> ValidationResult:
         """验证路径安全性"""
-        # 添加调试日志
-        from ..core.logging import get_logger
-
-        logger = get_logger(__name__)
-        logger.error(f"路径验证开始 - 输入路径: {path}")
-        logger.error(f"当前allowed_paths: {self.allowed_paths}")
-
         errors = []
 
         try:
@@ -220,12 +203,6 @@ class ReadFileTool(BaseFileOperationTool):
 
     def validate_parameters(self, params: Dict[str, Any]) -> ValidationResult:
         """验证参数"""
-        # 添加调试日志
-        from ..core.logging import get_logger
-
-        logger = get_logger(__name__)
-        logger.error(f"ReadFileTool.validate_parameters 被调用，参数: {params}")
-
         # 验证路径
         path_validation = self._validate_path(params.get("path", ""))
         if not path_validation.is_valid:

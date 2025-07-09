@@ -438,27 +438,35 @@ class TestFileOperationsValidation:
         """测试读取文件路径验证"""
         tool = ReadFileTool()
 
-        # 测试空路径
+        # 测试空路径 - 现在会被解析为当前工作目录，应该被允许
         validation_result = tool.validate_parameters({"path": ""})
-        assert not validation_result.is_valid
+        assert validation_result.is_valid  # 智能路径验证允许当前工作目录
 
-        # 测试相对路径（取决于配置）
-        validation_result = tool.validate_parameters({"path": "../../../etc/passwd"})
-        # 根据实际配置可能允许或禁止
+        # 测试系统敏感路径 - 应该被禁止
+        validation_result = tool.validate_parameters({"path": "/etc/passwd"})
+        assert not validation_result.is_valid  # 系统敏感路径应该被禁止
 
     def test_write_file_path_validation(self):
         """测试写入文件路径验证"""
         tool = WriteFileTool()
 
-        # 测试空路径
+        # 测试空路径 - 现在会被解析为当前工作目录，应该被允许
         validation_result = tool.validate_parameters({"path": "", "content": "test"})
-        assert not validation_result.is_valid
+        assert validation_result.is_valid  # 智能路径验证允许当前工作目录
 
-        # 测试空内容
+        # 测试系统敏感路径 - 应该被禁止
         validation_result = tool.validate_parameters(
-            {"path": "/tmp/test.txt", "content": ""}
+            {"path": "/etc/test.txt", "content": "test"}
         )
-        # 空内容应该是允许的
+        assert not validation_result.is_valid  # 系统敏感路径应该被禁止
+
+        # 测试空内容 - 应该被允许
+        import tempfile
+
+        validation_result = tool.validate_parameters(
+            {"path": f"{tempfile.gettempdir()}/test.txt", "content": ""}
+        )
+        assert validation_result.is_valid  # 空内容应该是允许的
 
     def test_list_files_path_validation(self):
         """测试列出文件路径验证"""

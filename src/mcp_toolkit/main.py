@@ -115,7 +115,6 @@ async def start_server(
 
     # 初始化基础工具服务
     logger.info("🔧 初始化基础工具服务...")
-    logger.error(f"传递给BasicToolsService的配置: {config_data}")
     basic_tools_service = BasicToolsService(config_data)
     await basic_tools_service.initialize()
 
@@ -184,16 +183,11 @@ async def start_server(
 
         # 注册tools/call方法
         async def handle_tools_call(params: Dict[str, Any]) -> Dict[str, Any]:
-            # 添加调试日志
-            logger.error(f"handle_tools_call 被调用，参数: {params}")
-
             if not params or "name" not in params:
                 raise ValueError("Missing required parameter: name")
 
             tool_name = params["name"]
             arguments = params.get("arguments", {})
-
-            logger.error(f"准备调用工具: {tool_name}, 参数: {arguments}")
 
             # 创建工具调用请求
             from .core.types import ToolCallRequest
@@ -205,14 +199,8 @@ async def start_server(
                 session_id=None,
             )
 
-            logger.error(f"创建的请求: {request}")
-
             # 执行工具调用
             response = await basic_tools_service.call_tool(request)
-
-            logger.error(
-                f"工具调用响应: success={response.success}, error={response.error}"
-            )
 
             if response.success:
                 return {"content": [{"type": "text", "text": str(response.result)}]}

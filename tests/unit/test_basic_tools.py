@@ -109,9 +109,13 @@ class TestFileOperationsTools:
         # 创建工具并正确配置
         read_tool = ReadFileTool({"allowed_paths": [temp_root]})
 
-        # 测试缺少必需参数
+        # 测试缺少必需参数 - 现在空路径会被解析为当前工作目录，这是被允许的
         validation = read_tool.validate_parameters({})
-        assert not validation.is_valid
+        assert validation.is_valid  # 智能路径验证允许当前工作目录
+
+        # 测试真正无效的路径 - 系统敏感路径
+        validation = read_tool.validate_parameters({"path": "/etc/passwd"})
+        assert not validation.is_valid  # 系统敏感路径应该被禁止
 
         # 测试有效参数
         test_file = tmp_path / "test.txt"
