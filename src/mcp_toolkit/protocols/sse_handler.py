@@ -588,7 +588,7 @@ class SSETransportHandler(ProtocolHandler):
     def _is_initialize_request(self, body: Any) -> bool:
         """检查请求是否为初始化请求"""
         if isinstance(body, dict):
-            return body.get("method") == "initialize"
+            return bool(body.get("method") == "initialize")
         elif isinstance(body, list):
             return any(
                 item.get("method") == "initialize"

@@ -1,0 +1,91 @@
+# MCP 工具集增强配置
+# 基于 ChromaDB 统一存储的增强工具配置
+
+# 工具启用配置
+tools:
+  categories:
+    # 基础工具
+    file_operations:
+      enabled: true
+    terminal:
+      enabled: true
+    network:
+      enabled: true
+    search:
+      enabled: true
+
+    # 第一阶段增强工具
+    enhanced_file_operations:
+      enabled: true
+    enhanced_network:
+      enabled: true
+    enhanced_system:
+      enabled: true
+
+    # 第二阶段上下文引擎工具
+    context_tools:
+      enabled: true
+
+# ChromaDB 统一存储配置
+chromadb:
+  persist_directory: "./mcp_unified_db"
+  collection_name: "mcp_unified_storage"
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+  anonymized_telemetry: false
+
+# 增强文件操作工具配置
+enhanced_file_operations:
+  max_file_size_mb: 10
+  auto_store_to_chromadb: true
+  supported_encodings:
+    - utf-8
+    - gbk
+    - ascii
+  language_detection: true
+  extract_metadata: true
+
+# 增强网络工具配置
+enhanced_network:
+  timeout: 30
+  max_content_size_mb: 5
+  auto_store_to_chromadb: true
+  user_agent: "MCP-Toolkit/1.0"
+  extract_text: true
+  include_metadata: true
+
+# 增强系统工具配置
+enhanced_system:
+  auto_store_to_chromadb: true
+  default_process_limit: 20
+  include_system_details: true
+
+# 第二阶段：上下文引擎工具配置
+context_tools:
+  chunk_size: 1000
+  chunk_overlap: 100
+  max_file_size_mb: 10
+  max_results: 20
+  context_engine:
+    enable_code_analysis: true
+    enable_dependency_tracking: true
+    enable_semantic_search: true
+
+# 安全配置
+security:
+  # 基于智能路径验证的安全设置
+  smart_path_validation: true
+  allowed_domains: []  # 空表示允许所有域名，可以添加特定域名限制
+  max_concurrent_operations: 5
+
+# 性能配置
+performance:
+  max_memory_usage_mb: 500
+  query_timeout_seconds: 30
+  batch_size: 16
+  cache_size: 1000
+
+# 日志配置
+logging:
+  level: INFO
+  log_chromadb_operations: true
+  log_performance_metrics: true

@@ -19,6 +19,18 @@ from ..tools.network import NetworkTools
 from ..tools.search import SearchTools
 from ..tools.terminal import TerminalTools
 
+# 导入增强工具（如果可用）
+try:
+    from ..storage.unified_manager import UnifiedDataManager
+    from ..tools.context_tools import ContextTools
+    from ..tools.enhanced_file_operations import EnhancedFileOperationsTools
+    from ..tools.enhanced_network import EnhancedNetworkTools
+    from ..tools.enhanced_system import EnhancedSystemTools
+
+    ENHANCED_TOOLS_AVAILABLE = True
+except ImportError:
+    ENHANCED_TOOLS_AVAILABLE = False
+
 logger = get_logger(__name__)
 
 
@@ -31,6 +43,20 @@ class BasicToolsService(ServiceModule):
         # 为每个服务实例创建独立的工具注册表
         self.registry = ToolRegistry()
         self._initialized = False
+        self.data_manager: Optional[UnifiedDataManager] = None
+
+        # 检查是否启用增强模式
+        self.enhanced_mode = self._is_enhanced_mode_enabled()
+        if self.enhanced_mode and ENHANCED_TOOLS_AVAILABLE:
+            # 初始化 ChromaDB 统一数据管理器
+            chromadb_config = self.config.get("chromadb", {})
+            persist_directory = chromadb_config.get(
+                "persist_directory", "./mcp_unified_db"
+            )
+            self.data_manager = UnifiedDataManager(persist_directory)
+            logger.info("增强模式已启用，ChromaDB 统一数据管理器已初始化")
+        else:
+            self.data_manager = None
 
     @property
     def name(self) -> str:
@@ -44,7 +70,19 @@ class BasicToolsService(ServiceModule):
         return "1.0.0"
 
     def get_description(self) -> str:
+        if self.enhanced_mode:
+            return "增强工具服务，提供基础工具 + ChromaDB统一存储、语义搜索等增强功能"
         return "基础工具服务，提供文件操作、终端执行、网络请求、搜索等功能"
+
+    def _is_enhanced_mode_enabled(self) -> bool:
+        """检查是否启用增强模式"""
+        # 检查配置文件路径是否包含 enhanced
+        config_file = os.environ.get("MCP_CONFIG_FILE", "")
+        if "enhanced" in config_file.lower():
+            return True
+
+        # 检查配置中是否明确启用增强模式
+        return bool(self.config.get("enhanced_mode", False))
 
     def _load_tools_config(self) -> Dict[Any, Any]:
         """加载工具配置"""
@@ -136,6 +174,10 @@ class BasicToolsService(ServiceModule):
             for tool in search_tools.create_tools():
                 self.registry.register_tool(tool)
 
+        # 注册增强工具（如果启用增强模式）
+        if self.enhanced_mode and ENHANCED_TOOLS_AVAILABLE:
+            self._register_enhanced_tools(categories)
+
     async def initialize(self) -> None:
         """初始化服务"""
         try:
@@ -148,9 +190,13 @@ class BasicToolsService(ServiceModule):
             self._register_tools(tools_config)
 
             self._initialized = True
-            logger.info(
-                f"基础工具服务初始化完成，注册了 {len(self.registry.list_tools())} 个工具"
-            )
+            tool_count = len(self.registry.list_tools())
+            if self.enhanced_mode:
+                logger.info(
+                    f"增强工具服务初始化完成，注册了 {tool_count} 个工具（包含增强功能）"
+                )
+            else:
+                logger.info(f"基础工具服务初始化完成，注册了 {tool_count} 个工具")
 
         except Exception as e:
             logger.exception("基础工具服务初始化失败")
@@ -248,6 +294,53 @@ class BasicToolsService(ServiceModule):
             return True
         except Exception:
             return False
+
+    def _register_enhanced_tools(self, categories: Dict[str, Any]) -> None:
+        """注册增强工具"""
+        try:
+            # 注册增强文件操作工具
+            if categories.get("enhanced_file_operations", {}).get("enabled", True):
+                enhanced_file_config = categories.get(
+                    "enhanced_file_operations", {}
+                ).get("settings", {})
+                enhanced_file_tools = EnhancedFileOperationsTools(enhanced_file_config)
+                for tool in enhanced_file_tools.create_tools():
+                    self.registry.register_tool(tool)
+                logger.info("增强文件操作工具注册完成")
+
+            # 注册增强网络工具
+            if categories.get("enhanced_network", {}).get("enabled", True):
+                enhanced_network_config = categories.get("enhanced_network", {}).get(
+                    "settings", {}
+                )
+                enhanced_network_tools = EnhancedNetworkTools(enhanced_network_config)
+                for tool in enhanced_network_tools.create_tools():
+                    self.registry.register_tool(tool)
+                logger.info("增强网络工具注册完成")
+
+            # 注册增强系统工具
+            if categories.get("enhanced_system", {}).get("enabled", True):
+                enhanced_system_config = categories.get("enhanced_system", {}).get(
+                    "settings", {}
+                )
+                enhanced_system_tools = EnhancedSystemTools(enhanced_system_config)
+                for tool in enhanced_system_tools.create_tools():
+                    self.registry.register_tool(tool)
+                logger.info("增强系统工具注册完成")
+
+            # 注册上下文引擎工具（第二阶段）
+            if categories.get("context_tools", {}).get("enabled", True):
+                context_tools_config = categories.get("context_tools", {}).get(
+                    "settings", {}
+                )
+                context_tools = ContextTools(context_tools_config)
+                for tool in context_tools.create_tools():
+                    self.registry.register_tool(tool)
+                logger.info("上下文引擎工具注册完成")
+
+        except Exception as e:
+            logger.error(f"注册增强工具失败: {e}")
+            # 不抛出异常，允许基础工具继续工作
 
 
 def create_basic_tools_service(

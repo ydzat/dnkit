@@ -198,3 +198,8 @@ config/production.yaml
 data/
 workspace/
 tmp/
+
+# ChromaDB database files
+mcp_unified_db/
+*.sqlite3
+chroma.sqlite3
