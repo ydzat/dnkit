@@ -11,12 +11,21 @@ logging:
   file: "logs/mcp-toolkit.log"
 
 tools:
-  basic_tools:
-    enabled: true
-    max_file_size_mb: 10
-    allowed_paths:
-      - "./data"
-      - "./workspace"
+  categories:
+    file_operations:
+      enabled: true
+      settings:
+        max_file_size_bytes: 10485760  # 10MB
+        allowed_paths:
+          - "./data"
+          - "./workspace"
+          - "."  # 添加当前工作目录
+    terminal:
+      enabled: true
+    network:
+      enabled: true
+    search:
+      enabled: true
 
 services:
   registry:

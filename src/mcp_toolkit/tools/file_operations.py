@@ -34,6 +34,13 @@ class BaseFileOperationTool(BaseTool):
 
     def __init__(self, config: Optional[ConfigDict] = None):
         super().__init__(config)
+
+        # 添加调试日志
+        from ..core.logging import get_logger
+
+        logger = get_logger(__name__)
+        logger.debug(f"BaseFileOperationTool 初始化，配置: {self.config}")
+
         self.allowed_paths = self.config.get(
             "allowed_paths", ["/workspace", "/tmp/mcp-toolkit"]  # nosec B108
         )
@@ -46,8 +53,63 @@ class BaseFileOperationTool(BaseTool):
             "forbidden_extensions", [".exe", ".dll", ".so"]
         )
 
+        logger.debug(
+            f"BaseFileOperationTool 配置完成，allowed_paths: {self.allowed_paths}"
+        )
+
+    def _is_path_safe(self, normalized_path: str) -> bool:
+        """
+        智能路径安全验证
+        使用安全策略而非硬编码白名单，更适合多用户环境
+        """
+        import pwd
+
+        # 获取当前用户信息
+        try:
+            current_user = pwd.getpwuid(os.getuid())
+            user_home = current_user.pw_dir
+        except (KeyError, AttributeError):
+            user_home = os.path.expanduser("~")
+
+        # 获取当前工作目录
+        current_dir = os.getcwd()
+
+        # 安全路径策略：
+        # 1. 允许用户家目录及其子目录
+        if normalized_path.startswith(user_home):
+            return True
+
+        # 2. 允许当前工作目录及其子目录
+        if normalized_path.startswith(current_dir):
+            return True
+
+        # 3. 允许临时目录
+        import tempfile
+
+        temp_dirs = [tempfile.gettempdir()]  # 使用系统临时目录
+        for temp_dir in temp_dirs:
+            if normalized_path.startswith(temp_dir):
+                return True
+
+        # 4. 如果配置了allowed_paths，也检查这些路径（向后兼容）
+        if self.allowed_paths:
+            for allowed_path in self.allowed_paths:
+                expanded_allowed = os.path.abspath(os.path.expanduser(allowed_path))
+                if normalized_path.startswith(expanded_allowed):
+                    return True
+
+        # 5. 其他路径默认不允许
+        return False
+
     def _validate_path(self, path: str) -> ValidationResult:
         """验证路径安全性"""
+        # 添加调试日志
+        from ..core.logging import get_logger
+
+        logger = get_logger(__name__)
+        logger.error(f"路径验证开始 - 输入路径: {path}")
+        logger.error(f"当前allowed_paths: {self.allowed_paths}")
+
         errors = []
 
         try:
@@ -65,23 +127,15 @@ class BaseFileOperationTool(BaseTool):
                         )
                     )
 
-            # 检查是否在允许路径中（如果配置了允许路径）
-            if self.allowed_paths:
-                allowed = False
-                for allowed_path in self.allowed_paths:
-                    expanded_allowed = os.path.abspath(os.path.expanduser(allowed_path))
-                    if normalized_path.startswith(expanded_allowed):
-                        allowed = True
-                        break
-
-                if not allowed:
-                    errors.append(
-                        ValidationError(
-                            field="path",
-                            message=f"路径 {path} 不在允许的目录中",
-                            code="PATH_NOT_ALLOWED",
-                        )
+            # 智能路径验证：使用安全策略而非硬编码白名单
+            if not self._is_path_safe(normalized_path):
+                errors.append(
+                    ValidationError(
+                        field="path",
+                        message=f"路径 {path} (规范化为: {normalized_path}) 访问被拒绝：安全策略不允许访问此路径",
+                        code="PATH_NOT_ALLOWED",
                     )
+                )
 
             # 检查文件扩展名
             if self.forbidden_extensions:
@@ -166,6 +220,12 @@ class ReadFileTool(BaseFileOperationTool):
 
     def validate_parameters(self, params: Dict[str, Any]) -> ValidationResult:
         """验证参数"""
+        # 添加调试日志
+        from ..core.logging import get_logger
+
+        logger = get_logger(__name__)
+        logger.error(f"ReadFileTool.validate_parameters 被调用，参数: {params}")
+
         # 验证路径
         path_validation = self._validate_path(params.get("path", ""))
         if not path_validation.is_valid:

@@ -48,9 +48,14 @@ class BasicToolsService(ServiceModule):
 
     def _load_tools_config(self) -> Dict[Any, Any]:
         """加载工具配置"""
+        # 添加调试日志
+        logger.error(f"_load_tools_config 被调用，self.config: {self.config}")
+
         # 首先使用传入的配置
         if "tools" in self.config:
-            return cast(Dict[Any, Any], self.config["tools"])
+            tools_config = cast(Dict[Any, Any], self.config["tools"])
+            logger.error(f"从传入配置中找到tools配置: {tools_config}")
+            return tools_config
 
         # 尝试从配置文件加载
         config_path = "config/modules/tools.yaml"
@@ -58,12 +63,15 @@ class BasicToolsService(ServiceModule):
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
                     config = yaml.safe_load(f)
+                    logger.error(f"从配置文件加载的配置: {config}")
                     return cast(Dict[Any, Any], config.get("tools", {}))
             except Exception as e:
                 logger.error(f"加载工具配置文件失败: {e}")
 
         # 返回默认配置
-        return self._get_default_config()
+        default_config = self._get_default_config()
+        logger.error(f"使用默认配置: {default_config}")
+        return default_config
 
     def _get_default_config(self) -> Dict[Any, Any]:
         """获取默认配置"""
@@ -101,7 +109,10 @@ class BasicToolsService(ServiceModule):
 
     def _register_tools(self, tools_config: Dict) -> None:
         """注册工具"""
+        logger.error(f"_register_tools 被调用，tools_config: {tools_config}")
+
         categories = tools_config.get("categories", {})
+        logger.error(f"categories: {categories}")
 
         # 注册Echo工具（始终启用，用于测试）
         echo_tools = EchoTools(self.config)
@@ -111,6 +122,7 @@ class BasicToolsService(ServiceModule):
         # 注册文件操作工具
         if categories.get("file_operations", {}).get("enabled", True):
             file_config = categories.get("file_operations", {}).get("settings", {})
+            logger.error(f"文件操作工具配置: {file_config}")
             file_tools = FileOperationsTools(file_config)
             for tool in file_tools.create_tools():
                 self.registry.register_tool(tool)
@@ -200,6 +212,11 @@ class BasicToolsService(ServiceModule):
         """调用工具"""
         from ..tools.base import ExecutionContext, ToolExecutionRequest
 
+        # 添加调试日志
+        logger.error(
+            f"BasicToolsService.call_tool 被调用，工具: {request.tool_name}, 参数: {request.arguments}"
+        )
+
         # 创建执行请求
         exec_request = ToolExecutionRequest(
             tool_name=request.tool_name,
@@ -212,6 +229,11 @@ class BasicToolsService(ServiceModule):
 
         # 执行工具
         result = await self.registry.execute_tool(exec_request)
+
+        # 添加调试日志
+        logger.error(f"工具执行结果: success={result.success}, error={result.error}")
+        if result.error:
+            logger.error(f"错误详情: {result.error.details}")
 
         # 转换结果格式
         if result.success:
