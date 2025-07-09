@@ -2,7 +2,7 @@
 
 ## 1. 概述
 
-基础工具模块为MCP工具集提供核心功能实现，覆盖文件操作、终端执行、网络访问、代码分析、版本控制和搜索等主要分类。所有工具都遵循统一的MCP协议接口规范，支持标准化的参数验证、错误处理和性能监控。
+基础工具模块为MCP工具集提供核心功能实现，当前已实现文件操作、终端执行、网络访问和搜索等主要功能。所有工具都遵循统一的MCP协议接口规范，支持标准化的参数验证、错误处理和性能监控。通过BasicToolsService统一管理和注册。
 
 ### 1.1 设计原则
 - **MCP标准兼容**：所有工具完全符合MCP协议规范
@@ -18,12 +18,13 @@ graph TD
     A --> C[SECONDARY分类]
     A --> D[CUSTOM分类]
 
-    B --> B1[file_operations]
-    B --> B2[terminal]
-    B --> B3[network]
-    B --> B4[code_analysis]
-    B --> B5[version_control]
-    B --> B6[search]
+    B --> B1[file_operations - 已实现]
+    B --> B2[terminal - 已实现]
+    B --> B3[network - 已实现]
+    B --> B4[search - 已实现]
+    B --> B5[echo - 已实现]
+    B --> B6[code_analysis - 待实现]
+    B --> B7[version_control - 待实现]
 
     C --> C1[context_management]
     C --> C2[ai_assistance]

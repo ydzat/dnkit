@@ -6,10 +6,11 @@
 设计一个标准化的MCP协议处理模块，支持多种传输方式，确保与MCP规范的完全兼容。
 
 ### 1.2 核心职责
-- **协议解析**：解析来自不同传输层的MCP请求
+- **协议解析**：解析来自不同传输层的MCP请求（HTTP、WebSocket、SSE）
 - **请求路由**：将MCP请求路由到对应的工具处理器
 - **响应格式化**：将工具执行结果格式化为标准MCP响应
 - **错误处理**：统一处理协议级别的错误和异常
+- **n8n集成**：特别支持n8n MCP Client Tool节点的SSE协议需求
 
 ## 2. 模块架构设计
 
@@ -23,7 +24,8 @@ graph TD
 
     B --> B1[HTTP传输处理器]
     B --> B2[WebSocket传输处理器]
-    B --> B3[JSON-RPC传输处理器]
+    B --> B3[SSE传输处理器]
+    B --> B4[JSON-RPC处理器]
 
     C --> C1[请求验证器]
     C --> C2[参数解析器]
@@ -41,13 +43,25 @@ graph TD
 ## 3. 传输层设计
 
 ### 3.1 传输层抽象接口
-```
-interface TransportHandler:
-  # 生命周期
-  start(config: TransportConfig) -> Result<void>
-  stop() -> Result<void>
+```python
+class TransportHandler(ABC):
+    """传输层处理器抽象基类"""
 
-  # 请求处理
+    def __init__(self, host: str = "127.0.0.1", port: int = 8080):
+        self.host = host
+        self.port = port
+        self.jsonrpc_processor = JSONRPCProcessor()
+        self.logger = get_logger(self.__class__.__name__)
+
+    @abstractmethod
+    async def start(self) -> None:
+        """启动传输处理器"""
+        pass
+
+    @abstractmethod
+    async def stop(self) -> None:
+        """停止传输处理器"""
+        pass
   handle_connection(connection: Connection) -> void
   send_response(connection: Connection, response: MCPResponse) -> Result<void>
 
@@ -136,7 +150,82 @@ JSONRPCTransportHandler implements TransportHandler:
   - 请求ID追踪
 ```
 
-## 4. 协议解析器设计
+### 3.2 实际实现的传输处理器
+
+#### 3.2.1 HTTP传输处理器 (HTTPTransportHandler)
+```python
+class HTTPTransportHandler(TransportHandler):
+    """HTTP传输处理器，支持RESTful API接口"""
+
+    async def start(self) -> None:
+        """启动HTTP服务器"""
+        self._app = web.Application()
+        self._setup_routes()
+        self._setup_middleware()
+
+        self._runner = web.AppRunner(self._app)
+        await self._runner.setup()
+
+        site = web.TCPSite(self._runner, self.host, self.port)
+        await site.start()
+
+    def _setup_routes(self) -> None:
+        """设置路由"""
+        self._app.router.add_post("/mcp", self._handle_mcp_request)
+        self._app.router.add_get("/health", self._handle_health_check)
+        self._app.router.add_options("/{path:.*}", self._handle_options)
+```
+
+#### 3.2.2 SSE传输处理器 (SSETransportHandler)
+```python
+class SSETransportHandler(TransportHandler):
+    """SSE传输处理器，特别支持n8n MCP Client Tool节点"""
+
+    async def start(self) -> None:
+        """启动SSE服务器"""
+        self._app = web.Application()
+        self._setup_routes()
+        self._setup_middleware()
+
+        # 支持n8n的Legacy SSE协议
+        self._legacy_sse_support = True
+
+    async def _handle_sse_stream(self, request: Request) -> StreamResponse:
+        """处理SSE流连接"""
+        response = web.StreamResponse(
+            status=200,
+            reason='OK',
+            headers={
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'Access-Control-Allow-Origin': '*',
+            }
+        )
+```
+
+#### 3.2.3 WebSocket传输处理器 (WebSocketTransportHandler)
+```python
+class WebSocketTransportHandler(TransportHandler):
+    """WebSocket传输处理器，支持双向实时通信"""
+
+    async def start(self) -> None:
+        """启动WebSocket服务器"""
+        self._app = web.Application()
+        self._app.router.add_get("/ws", self._websocket_handler)
+
+    async def _websocket_handler(self, request: Request) -> WebSocketResponse:
+        """WebSocket连接处理器"""
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                response = await self.jsonrpc_processor.process_message(msg.data)
+                await ws.send_str(response)
+```
+
+## 4. JSON-RPC处理器设计
 
 ### 4.1 MCP请求解析
 ```
