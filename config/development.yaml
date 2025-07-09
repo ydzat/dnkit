@@ -1,6 +1,8 @@
 server:
-  host: "127.0.0.1"
+  host: "0.0.0.0"  # 绑定到所有网络接口，允许局域网访问
   port: 8080
+  ws_port: 8081  # WebSocket端口
+  sse_port: 8082  # SSE端口 (用于n8n MCP连接)
   debug: true
 
 logging:
@@ -25,6 +27,7 @@ security:
   allowed_origins:
     - "http://localhost:*"
     - "http://127.0.0.1:*"
+    - "*"  # 允许所有来源（开发环境）
   rate_limiting:
     enabled: true
     requests_per_minute: 60

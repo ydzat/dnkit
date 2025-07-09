@@ -96,9 +96,11 @@ class HTTPTransportHandler(ProtocolHandler):
         if self._app is None:
             raise RuntimeError("Application not initialized")
         self._app.router.add_post("/mcp", self._handle_mcp_request)
+        self._app.router.add_post("/", self._handle_mcp_request)  # 添加根路径支持
         self._app.router.add_get("/health", self._handle_health_check)
         self._app.router.add_get("/methods", self._handle_methods_list)
         self._app.router.add_options("/mcp", self._handle_preflight)
+        self._app.router.add_options("/", self._handle_preflight)  # 添加根路径CORS支持
 
     def _setup_middleware(self) -> None:
         """Setup middleware chain."""
@@ -166,8 +168,12 @@ class HTTPTransportHandler(ProtocolHandler):
         return response
 
     async def _handle_mcp_request(self, request: Request) -> Response:
-        """Handle MCP JSON-RPC requests."""
+        """Handle MCP JSON-RPC requests using Streamable HTTP protocol."""
         try:
+            # Check Accept header to determine response type
+            accept_header = request.headers.get("Accept", "application/json")
+            supports_sse = "text/event-stream" in accept_header
+
             # Check content type
             content_type = request.headers.get("Content-Type", "")
             if not content_type.startswith("application/json"):
@@ -183,16 +189,36 @@ class HTTPTransportHandler(ProtocolHandler):
             # Process JSON-RPC request
             response_json = await self.jsonrpc_processor.process_message(body)
 
+            # Add CORS headers
+            headers = {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Accept, Mcp-Session-Id",
+                "Access-Control-Expose-Headers": "Mcp-Session-Id",
+            }
+
             # Return response
             if response_json:
-                return web.Response(text=response_json, content_type="application/json")
+                return web.Response(
+                    text=response_json, content_type="application/json", headers=headers
+                )
             else:
-                # Notification request (no response expected)
-                return web.Response(status=204)
+                # For notification requests, return empty JSON response
+                return web.Response(
+                    text="{}", content_type="application/json", headers=headers
+                )
 
         except Exception as e:
             self.logger.error(f"Error handling MCP request: {str(e)}")
-            return web.json_response({"error": "Failed to process request"}, status=500)
+            return web.json_response(
+                {"error": "Failed to process request"},
+                status=500,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Accept, Mcp-Session-Id",
+                },
+            )
 
     async def _handle_health_check(self, request: Request) -> Response:
         """Handle health check requests."""

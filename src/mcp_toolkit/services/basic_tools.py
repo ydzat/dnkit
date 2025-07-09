@@ -13,6 +13,7 @@ from ..core.interfaces import ModuleInterface, ServiceModule, ToolDefinition
 from ..core.logging import get_logger
 from ..core.types import ConfigDict, ToolCallRequest, ToolCallResponse
 from ..tools.base import BaseTool, ToolRegistry, get_tool_registry
+from ..tools.echo import EchoTools
 from ..tools.file_operations import FileOperationsTools
 from ..tools.network import NetworkTools
 from ..tools.search import SearchTools
@@ -101,6 +102,11 @@ class BasicToolsService(ServiceModule):
     def _register_tools(self, tools_config: Dict) -> None:
         """注册工具"""
         categories = tools_config.get("categories", {})
+
+        # 注册Echo工具（始终启用，用于测试）
+        echo_tools = EchoTools(self.config)
+        for tool in echo_tools.create_tools():
+            self.registry.register_tool(tool)
 
         # 注册文件操作工具
         if categories.get("file_operations", {}).get("enabled", True):

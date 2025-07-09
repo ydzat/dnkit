@@ -6,6 +6,7 @@ MCP工具集基础工具模块
 """
 
 from .base import BaseTool, ToolRegistry
+from .echo import EchoTools
 from .file_operations import FileOperationsTools
 from .network import NetworkTools
 from .search import SearchTools
@@ -14,6 +15,7 @@ from .terminal import TerminalTools
 __all__ = [
     "BaseTool",
     "ToolRegistry",
+    "EchoTools",
     "FileOperationsTools",
     "TerminalTools",
     "NetworkTools",
