@@ -11,7 +11,7 @@ MCP 工具集增强服务器
 import asyncio
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import yaml
 
@@ -179,7 +179,7 @@ class EnhancedMCPServer:
 
     async def search_unified_data(
         self, query: str, data_type: Optional[str] = None, max_results: int = 10
-    ) -> Dict:
+    ) -> Any:
         """搜索统一数据存储"""
         try:
             return self.data_manager.query_data(

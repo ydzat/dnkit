@@ -106,12 +106,15 @@ class ToolExecutionRequest:
 
 
 @dataclass
-class ToolError:
+class ToolError(Exception):
     """工具执行错误"""
 
     code: str
     message: str
     details: Optional[Dict[str, Any]] = None
+
+    def __str__(self) -> str:
+        return f"{self.code}: {self.message}"
 
 
 @dataclass

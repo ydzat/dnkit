@@ -152,7 +152,7 @@ class QueryProcessor:
 
         return conditions
 
-    def _execute_search(self, conditions: Dict[str, Any]) -> Dict[str, Any]:
+    def _execute_search(self, conditions: Dict[str, Any]) -> Any:
         """执行搜索"""
         query_text = conditions["query_text"]
         filters = conditions.get("filters", {})

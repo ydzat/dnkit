@@ -22,10 +22,14 @@ from ..tools.terminal import TerminalTools
 # 导入增强工具（如果可用）
 try:
     from ..storage.unified_manager import UnifiedDataManager
+    from ..tools.collaboration import ToolCollaborationFramework
     from ..tools.context_tools import ContextTools
     from ..tools.enhanced_file_operations import EnhancedFileOperationsTools
     from ..tools.enhanced_network import EnhancedNetworkTools
     from ..tools.enhanced_system import EnhancedSystemTools
+    from ..tools.memory_management import MemoryManagementTools
+    from ..tools.task_management import create_task_tools
+    from ..tools.visualization import create_visualization_tools
 
     ENHANCED_TOOLS_AVAILABLE = True
 except ImportError:
@@ -133,6 +137,40 @@ class BasicToolsService(ServiceModule):
                 "search": {
                     "enabled": True,
                     "settings": {"max_results": 100, "max_depth": 10},
+                },
+                "task_management": {
+                    "enabled": True,
+                    "settings": {
+                        "auto_store_to_chromadb": True,
+                        "max_tasks_per_query": 50,
+                    },
+                },
+                "visualization": {
+                    "enabled": True,
+                    "settings": {
+                        "default_theme": "default",
+                        "max_nodes": 1000,
+                        "enable_auto_generation": True,
+                    },
+                },
+                "memory_management": {
+                    "enabled": True,
+                    "settings": {
+                        "auto_store_to_chromadb": True,
+                        "max_memories_per_query": 50,
+                        "default_importance_threshold": 0.5,
+                        "enable_auto_cleanup": True,
+                        "memory_retention_days": 90,
+                    },
+                },
+                "collaboration": {
+                    "enabled": True,
+                    "settings": {
+                        "max_parallel_tasks": 5,
+                        "enable_caching": True,
+                        "default_timeout": 300,
+                        "enable_rollback": False,
+                    },
                 },
             }
         }
@@ -337,6 +375,59 @@ class BasicToolsService(ServiceModule):
                 for tool in context_tools.create_tools():
                     self.registry.register_tool(tool)
                 logger.info("上下文引擎工具注册完成")
+
+            # 注册任务管理工具（第三阶段）
+            if categories.get("task_management", {}).get("enabled", True):
+                if self.data_manager:
+                    # 创建所有任务管理相关工具
+                    task_tools = create_task_tools(self.data_manager)
+                    for tool in task_tools:
+                        self.registry.register_tool(tool)
+                    logger.info("任务管理工具注册完成")
+                else:
+                    logger.warning("数据管理器未初始化，跳过任务管理工具注册")
+
+            # 注册可视化工具（第三阶段）
+            if categories.get("visualization", {}).get("enabled", True):
+                # 注册所有可视化工具（包括新的专门工具）
+                visualization_tools = create_visualization_tools()
+                for tool in visualization_tools:
+                    self.registry.register_tool(tool)
+
+                logger.info("可视化工具注册完成")
+
+            # 注册记忆管理工具（第三阶段）
+            if categories.get("memory_management", {}).get("enabled", True):
+                memory_config = categories.get("memory_management", {}).get(
+                    "settings", {}
+                )
+                memory_tools = MemoryManagementTools(memory_config)
+
+                # 设置数据管理器
+                if self.data_manager:
+                    memory_tools.set_data_manager(self.data_manager)
+
+                for tool in memory_tools.create_tools():
+                    self.registry.register_tool(tool)
+                logger.info("记忆管理工具注册完成")
+
+            # 注册工具协作框架（第三阶段）
+            if categories.get("collaboration", {}).get("enabled", True):
+                collaboration_config = categories.get("collaboration", {}).get(
+                    "settings", {}
+                )
+                collaboration_framework = ToolCollaborationFramework(
+                    collaboration_config
+                )
+
+                # 注册所有已创建的工具实例到协作框架
+                # 获取所有已注册的工具并注册到协作框架
+                for tool_name, tool_instance in self.registry._tools.items():
+                    collaboration_framework.register_tool(tool_name, tool_instance)
+
+                for tool in collaboration_framework.create_tools():
+                    self.registry.register_tool(tool)
+                logger.info("工具协作框架注册完成")
 
         except Exception as e:
             logger.error(f"注册增强工具失败: {e}")

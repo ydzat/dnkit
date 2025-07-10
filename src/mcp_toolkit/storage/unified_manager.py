@@ -96,7 +96,7 @@ class UnifiedDataManager:
         data_type: Optional[str] = None,
         filters: Optional[Dict[str, Any]] = None,
         n_results: int = 10,
-    ) -> Dict[str, Any]:
+    ) -> Any:
         """统一数据查询接口
 
         Args:
@@ -108,18 +108,27 @@ class UnifiedDataManager:
         Returns:
             Dict: 查询结果
         """
-        where_clause = {}
+        # 构建 ChromaDB 兼容的过滤器
+        conditions: List[Dict[str, Any]] = []
 
         if data_type:
-            where_clause["data_type"] = data_type
+            conditions.append({"data_type": data_type})
 
         if filters:
-            where_clause.update(filters)
+            for key, value in filters.items():
+                conditions.append({key: value})
+
+        # 根据条件数量构建 where 子句
+        where_clause = None
+        if len(conditions) == 1:
+            where_clause = conditions[0]
+        elif len(conditions) > 1:
+            where_clause = {"$and": conditions}
 
         try:
-            return self.collection.query(  # type: ignore
+            return self.collection.query(
                 query_texts=[query],
-                where=where_clause if where_clause else None,  # type: ignore
+                where=where_clause,
                 n_results=n_results,
             )
         except Exception as e:

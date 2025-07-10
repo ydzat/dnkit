@@ -26,6 +26,16 @@ tools:
     context_tools:
       enabled: true
 
+    # 第三阶段智能化增强工具
+    task_management:
+      enabled: true
+    memory_management:
+      enabled: true
+    visualization:
+      enabled: true
+    collaboration:
+      enabled: true
+
 # ChromaDB 统一存储配置
 chromadb:
   persist_directory: "./mcp_unified_db"
@@ -69,6 +79,32 @@ context_tools:
     enable_code_analysis: true
     enable_dependency_tracking: true
     enable_semantic_search: true
+
+# 第三阶段：智能化增强工具配置
+task_management:
+  auto_store_to_chromadb: true
+  max_tasks_per_query: 50
+  default_importance_threshold: 0.5
+  enable_auto_cleanup: true
+  memory_retention_days: 90
+
+memory_management:
+  auto_store_to_chromadb: true
+  max_memories_per_query: 50
+  default_importance_threshold: 0.5
+  enable_auto_cleanup: true
+  memory_retention_days: 90
+
+visualization:
+  default_theme: "default"
+  max_nodes: 1000
+  enable_auto_generation: true
+
+collaboration:
+  max_parallel_tasks: 5
+  enable_caching: true
+  default_timeout: 300
+  enable_rollback: false
 
 # 安全配置
 security:
