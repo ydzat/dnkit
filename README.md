@@ -206,4 +206,4 @@ See [doc/basic_tools/README.md](doc/basic_tools/README.md) for detailed design d
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details
+AGPL-3.0 License - see [LICENSE](LICENSE) for details
