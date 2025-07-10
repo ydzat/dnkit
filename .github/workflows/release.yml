@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  code-quality:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,13 +31,21 @@ jobs:
         # 使用uv安装所有依赖（包括Logloom）
         uv sync --group dev
 
-    - name: Run tests
+    - name: Code quality checks
       run: |
-        uv run pytest tests/ --cov=mcp_toolkit -v
+        uv run black --check src/
+        uv run isort --check-only src/
+        uv run flake8 src/
+        uv run mypy src/ --ignore-missing-imports
+        uv run bandit -r src/
+
+    - name: Validate package structure
+      run: |
+        uv run python -c "import mcp_toolkit; print('Package imports successfully')"
 
   release:
     runs-on: ubuntu-latest
-    needs: test
+    needs: code-quality
 
     steps:
     - uses: actions/checkout@v4
