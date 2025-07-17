@@ -90,7 +90,7 @@ class CodeAnalysisTool(BaseTool):
                 "VALIDATION_ERROR", f"参数验证失败: {'; '.join(error_messages)}"
             )
 
-        file_path = params["file_path"]
+        file_path = self._resolve_path(params["file_path"], request)
         content = params.get("content")
         force_reanalyze = params.get("force_reanalyze", False)
 

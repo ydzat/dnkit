@@ -11,7 +11,15 @@ MCP工具集基础工具模块
 - 增强的系统工具（支持系统信息管理）
 """
 
+# Agent 自动化工具
+from .agent_automation import AgentAutomationTools
+
+# Agent 行为工具
+from .agent_behavior import AgentBehaviorTools
 from .base import BaseTool, ToolRegistry
+
+# 上下文引擎工具
+from .context_engine import ContextEngineTools
 
 # 第二阶段上下文引擎工具
 from .context_tools import ContextTools
@@ -22,9 +30,18 @@ from .enhanced_file_operations import EnhancedFileOperationsTools
 from .enhanced_network import EnhancedNetworkTools
 from .enhanced_system import EnhancedSystemTools
 from .file_operations import FileOperationsTools
+
+# Git 集成工具
+from .git_integration import GitIntegrationTools
+
+# 智能分析工具
+from .intelligent_analysis import IntelligentAnalysisTools
 from .network import NetworkTools
 from .search import SearchTools
 from .terminal import TerminalTools
+
+# 版本管理工具
+from .version_management import VersionManagementTools
 
 __all__ = [
     "BaseTool",
@@ -40,4 +57,16 @@ __all__ = [
     "EnhancedSystemTools",
     # 第二阶段上下文引擎工具
     "ContextTools",
+    # Git 集成工具
+    "GitIntegrationTools",
+    # 版本管理工具
+    "VersionManagementTools",
+    # Agent 自动化工具
+    "AgentAutomationTools",
+    # 智能分析工具
+    "IntelligentAnalysisTools",
+    # Agent 行为工具
+    "AgentBehaviorTools",
+    # 上下文引擎工具
+    "ContextEngineTools",
 ]

@@ -6,7 +6,7 @@ A modular MCP (Model Context Protocol) toolkit for building extensible tool serv
 
 - 🔧 **Modular Architecture**: Support for dynamic service registration and hot-swappable components
 - 🌐 **Standard MCP Protocol**: Full support for MCP 2024-11-05 specification with n8n compatibility
-- 🛠️ **Rich Tool Set**: 32 tools including file operations, network requests, system management, intelligent code analysis, task management, memory system, and visualization
+- 🛠️ **Rich Tool Set**: 54 tools including file operations, network requests, system management, intelligent code analysis, task management, memory system, visualization, Git integration, version management, agent automation, intelligent analysis, agent behavior control, deep context analysis, and semantic intelligence
 - 🧠 **ChromaDB Integration**: Unified vector database for semantic search and intelligent data storage
 - 🔍 **Semantic Search**: AI-powered search across files, web content, system information, code, tasks, and memories
 - 🤖 **Context Engine**: Multi-language code analysis with intelligent query processing and similarity search
@@ -19,7 +19,7 @@ A modular MCP (Model Context Protocol) toolkit for building extensible tool serv
 ## 🎯 Current Status
 
 **Phase 3 Complete** ✅ (July 2025)
-- 32 tools available (12 basic + 6 enhanced + 4 context engine + 4 task management + 1 memory + 4 visualization + 1 collaboration)
+- 54 tools available (12 basic + 6 enhanced + 4 context engine + 4 Git integration + 3 version management + 2 agent automation + 3 intelligent analysis + 3 agent behavior + 3 deep context + 4 semantic intelligence + 4 task management + 1 memory + 4 visualization + 1 collaboration)
 - ChromaDB unified data storage across all intelligent tools
 - Multi-language code analysis (Python, JavaScript, TypeScript, etc.)
 - Task management system with semantic search and specialized search tools
@@ -68,7 +68,7 @@ curl http://localhost:8080/health
 ### n8n Integration
 ```
 Server URL: http://your-server:8082 (SSE endpoint)
-Available Tools: 32 tools ready for use (including context engine, task management, memory system, and visualization)
+Available Tools: 54 tools ready for use (including context engine, task management, memory system, visualization, agent automation, and semantic intelligence)
 ```
 
 ## 🛠️ Available Tools
@@ -107,6 +107,56 @@ Available Tools: 32 tools ready for use (including context engine, task manageme
 | | `find_similar_code` | Semantic similarity code search |
 | **Project Analysis** | `get_project_overview` | Project statistics and overview |
 
+### Git Integration Tools (4) 🔄
+| Category | Tool | Description |
+|----------|------|-------------|
+| **Diff Analysis** | `git_diff_analysis` | Smart Git diff analysis with multi-level insights |
+| **Patch Management** | `git_apply_patch` | Precise patch application with line-level editing |
+| **History Analysis** | `git_history_analysis` | Git history and change tracking analysis |
+| **Conflict Detection** | `git_conflict_check` | Potential merge conflict detection and analysis |
+
+### Version Management Tools (3) ⏱️
+| Category | Tool | Description |
+|----------|------|-------------|
+| **Operation Tracking** | `undo_operation` | Undo agent operations with fine-grained control |
+| **Checkpoint Management** | `rollback_to_checkpoint` | Rollback to specific checkpoints or time points |
+| **Checkpoint Control** | `manage_checkpoint` | Create, list, delete and manage version checkpoints |
+
+### Agent Automation Tools (2) 🤖
+| Category | Tool | Description |
+|----------|------|-------------|
+| **Task Decomposition** | `decompose_task` | Decompose complex tasks into subtasks |
+| **Execution Guidance** | `get_execution_guidance` | Task execution guidance and suggestions |
+
+### Intelligent Analysis Tools (3) 📈
+| Category | Tool | Description |
+|----------|------|-------------|
+| **Code Quality** | `analyze_code_quality` | Code quality analysis and improvement suggestions |
+| **Performance Monitoring** | `monitor_performance` | System performance metrics monitoring |
+| **History Trends** | `analyze_history_trends` | Historical data trend analysis |
+
+### Agent Behavior Tools (3) 🎯
+| Category | Tool | Description |
+|----------|------|-------------|
+| **State Control** | `control_agent_state` | Agent state machine control |
+| **Behavior Validation** | `validate_agent_behavior` | Behavior consistency validation |
+| **Learning Optimization** | `optimize_agent_learning` | History-based learning optimization |
+
+### Deep Context Engine Tools (3) 🔍
+| Category | Tool | Description |
+|----------|------|-------------|
+| **Dependency Analysis** | `analyze_dependencies` | Code dependency relationship analysis |
+| **Call Graph** | `build_call_graph` | Function call relationship graph construction |
+| **Refactoring Suggestions** | `suggest_refactoring` | Code refactoring suggestions |
+
+### Semantic Intelligence Tools (4) 💡
+| Category | Tool | Description |
+|----------|------|-------------|
+| **Semantic Understanding** | `understand_semantics` | Business logic and design pattern understanding |
+| **Code Completion** | `get_code_completions` | Intelligent code completion suggestions |
+| **Pattern Recognition** | `recognize_patterns` | Design pattern and programming pattern recognition |
+| **Best Practices** | `get_best_practices` | Best practice suggestions |
+
 ### Task Management Tools (4) 📋
 | Category | Tool | Description |
 |----------|------|-------------|
@@ -143,6 +193,11 @@ Available Tools: 32 tools ready for use (including context engine, task manageme
 - **Memory System**: Knowledge accumulation, conversation history, and intelligent memory retrieval
 - **Visualization Capabilities**: Mermaid diagrams, Chart.js data visualization, complex nested charts
 - **Tool Collaboration**: Chain execution, parallel processing, and data flow management
+- **Agent Automation**: Complex task decomposition and intelligent execution guidance
+- **Intelligent Analysis**: Code quality analysis, performance monitoring, and history trend analysis
+- **Agent Behavior Control**: State machine control, behavior validation, and learning optimization
+- **Deep Context Analysis**: Code dependency analysis, call graph construction, and refactoring suggestions
+- **Semantic Intelligence**: Business logic understanding, intelligent code completion, and pattern recognition
 - **Intelligent Metadata**: Automatic language detection, content analysis, complexity scoring
 - **MCP Compatible**: Full protocol compliance for seamless integration with n8n and other clients
 
@@ -183,12 +238,17 @@ See [doc/basic_tools/README.md](doc/basic_tools/README.md) for detailed design d
 
 ## 📊 Project Stats
 
-- **Total Tools**: 32 (12 basic + 6 enhanced + 4 context engine + 4 task management + 1 memory + 4 visualization + 1 collaboration)
+- **Total Tools**: 54 (12 basic + 6 enhanced + 4 context engine + 4 Git integration + 3 version management + 2 agent automation + 3 intelligent analysis + 3 agent behavior + 3 deep context + 4 semantic intelligence + 4 task management + 1 memory + 4 visualization + 1 collaboration)
 - **Code Analysis**: Multi-language support (Python, JavaScript, TypeScript, etc.)
 - **Task Management**: ChromaDB-based with semantic search and specialized search tools
 - **Memory System**: Knowledge accumulation with intelligent retrieval
 - **Visualization**: Mermaid diagrams, Chart.js data visualization, complex nested charts
 - **Tool Collaboration**: Chain execution, parallel processing, data flow management
+- **Agent Automation**: Task decomposition and execution guidance
+- **Intelligent Analysis**: Code quality, performance monitoring, history trends
+- **Agent Behavior**: State control, behavior validation, learning optimization
+- **Deep Context**: Dependency analysis, call graphs, refactoring suggestions
+- **Semantic Intelligence**: Business logic understanding, code completion, pattern recognition
 - **Database**: ChromaDB with sentence-transformers for unified vector storage
 - **Protocol**: MCP 2024-11-05 compliant
 - **Integration**: n8n compatible via SSE

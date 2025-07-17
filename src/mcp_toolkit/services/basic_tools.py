@@ -22,13 +22,20 @@ from ..tools.terminal import TerminalTools
 # 导入增强工具（如果可用）
 try:
     from ..storage.unified_manager import UnifiedDataManager
+    from ..tools.agent_automation import AgentAutomationTools
+    from ..tools.agent_behavior import AgentBehaviorTools
     from ..tools.collaboration import ToolCollaborationFramework
+    from ..tools.context_engine import ContextEngineTools
     from ..tools.context_tools import ContextTools
     from ..tools.enhanced_file_operations import EnhancedFileOperationsTools
     from ..tools.enhanced_network import EnhancedNetworkTools
     from ..tools.enhanced_system import EnhancedSystemTools
+    from ..tools.git_integration import GitIntegrationTools
+    from ..tools.intelligent_analysis import IntelligentAnalysisTools
     from ..tools.memory_management import MemoryManagementTools
+    from ..tools.semantic_engine import SemanticIntelligenceTools
     from ..tools.task_management import create_task_tools
+    from ..tools.version_management import VersionManagementTools
     from ..tools.visualization import create_visualization_tools
 
     ENHANCED_TOOLS_AVAILABLE = True
@@ -182,35 +189,35 @@ class BasicToolsService(ServiceModule):
         # 注册Echo工具（始终启用，用于测试）
         echo_tools = EchoTools(self.config)
         for tool in echo_tools.create_tools():
-            self.registry.register_tool(tool)
+            self.registry.register_tool(tool, "基础工具")
 
         # 注册文件操作工具
         if categories.get("file_operations", {}).get("enabled", True):
             file_config = categories.get("file_operations", {}).get("settings", {})
             file_tools = FileOperationsTools(file_config)
             for tool in file_tools.create_tools():
-                self.registry.register_tool(tool)
+                self.registry.register_tool(tool, "文件操作")
 
         # 注册终端工具
         if categories.get("terminal", {}).get("enabled", True):
             terminal_config = categories.get("terminal", {}).get("settings", {})
             terminal_tools = TerminalTools(terminal_config)
             for tool in terminal_tools.create_tools():
-                self.registry.register_tool(tool)
+                self.registry.register_tool(tool, "终端操作")
 
         # 注册网络工具
         if categories.get("network", {}).get("enabled", True):
             network_config = categories.get("network", {}).get("settings", {})
             network_tools = NetworkTools(network_config)
             for tool in network_tools.create_tools():
-                self.registry.register_tool(tool)
+                self.registry.register_tool(tool, "网络操作")
 
         # 注册搜索工具
         if categories.get("search", {}).get("enabled", True):
             search_config = categories.get("search", {}).get("settings", {})
             search_tools = SearchTools(search_config)
             for tool in search_tools.create_tools():
-                self.registry.register_tool(tool)
+                self.registry.register_tool(tool, "搜索工具")
 
         # 注册增强工具（如果启用增强模式）
         if self.enhanced_mode and ENHANCED_TOOLS_AVAILABLE:
@@ -343,7 +350,7 @@ class BasicToolsService(ServiceModule):
                 ).get("settings", {})
                 enhanced_file_tools = EnhancedFileOperationsTools(enhanced_file_config)
                 for tool in enhanced_file_tools.create_tools():
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "增强文件操作")
                 logger.info("增强文件操作工具注册完成")
 
             # 注册增强网络工具
@@ -353,7 +360,7 @@ class BasicToolsService(ServiceModule):
                 )
                 enhanced_network_tools = EnhancedNetworkTools(enhanced_network_config)
                 for tool in enhanced_network_tools.create_tools():
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "增强网络操作")
                 logger.info("增强网络工具注册完成")
 
             # 注册增强系统工具
@@ -363,7 +370,7 @@ class BasicToolsService(ServiceModule):
                 )
                 enhanced_system_tools = EnhancedSystemTools(enhanced_system_config)
                 for tool in enhanced_system_tools.create_tools():
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "增强系统操作")
                 logger.info("增强系统工具注册完成")
 
             # 注册上下文引擎工具（第二阶段）
@@ -373,8 +380,109 @@ class BasicToolsService(ServiceModule):
                 )
                 context_tools = ContextTools(context_tools_config)
                 for tool in context_tools.create_tools():
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "上下文引擎")
                 logger.info("上下文引擎工具注册完成")
+
+            # 注册 Git 集成工具（第一阶段增强）
+            if categories.get("git_integration", {}).get("enabled", True):
+                git_config = categories.get("git_integration", {}).get("settings", {})
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    git_config["chromadb_path"] = self.data_manager.persist_directory
+                git_tools = GitIntegrationTools(git_config)
+                for tool in git_tools.create_tools():
+                    self.registry.register_tool(tool, "Git集成")
+                logger.info("Git 集成工具注册完成")
+
+            # 注册版本管理工具（第一阶段增强）
+            if categories.get("version_management", {}).get("enabled", True):
+                version_config = categories.get("version_management", {}).get(
+                    "settings", {}
+                )
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    version_config["chromadb_path"] = (
+                        self.data_manager.persist_directory
+                    )
+                version_tools = VersionManagementTools(version_config)
+                for tool in version_tools.create_tools():
+                    self.registry.register_tool(tool, "版本管理")
+                logger.info("版本管理工具注册完成")
+
+            # 注册 Agent 自动化工具（第一阶段增强）
+            if categories.get("agent_automation", {}).get("enabled", True):
+                automation_config = categories.get("agent_automation", {}).get(
+                    "settings", {}
+                )
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    automation_config["chromadb_path"] = (
+                        self.data_manager.persist_directory
+                    )
+                automation_tools = AgentAutomationTools(automation_config)
+                for tool in automation_tools.create_tools():
+                    self.registry.register_tool(tool, "Agent自动化")
+                logger.info("Agent 自动化工具注册完成")
+
+            # 注册智能分析工具（第二阶段）
+            if categories.get("intelligent_analysis", {}).get("enabled", True):
+                analysis_config = categories.get("intelligent_analysis", {}).get(
+                    "settings", {}
+                )
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    analysis_config["chromadb_path"] = (
+                        self.data_manager.persist_directory
+                    )
+                analysis_tools = IntelligentAnalysisTools(analysis_config)
+                for tool in analysis_tools.create_tools():
+                    self.registry.register_tool(tool, "智能分析")
+                logger.info("智能分析工具注册完成")
+
+            # 注册 Agent 行为工具（第二阶段）
+            if categories.get("agent_behavior", {}).get("enabled", True):
+                behavior_config = categories.get("agent_behavior", {}).get(
+                    "settings", {}
+                )
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    behavior_config["chromadb_path"] = (
+                        self.data_manager.persist_directory
+                    )
+                behavior_tools = AgentBehaviorTools(behavior_config)
+                for tool in behavior_tools.create_tools():
+                    self.registry.register_tool(tool, "Agent行为")
+                logger.info("Agent 行为工具注册完成")
+
+            # 注册上下文引擎工具（第二阶段）
+            if categories.get("context_engine", {}).get("enabled", True):
+                context_config = categories.get("context_engine", {}).get(
+                    "settings", {}
+                )
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    context_config["chromadb_path"] = (
+                        self.data_manager.persist_directory
+                    )
+                context_engine_tools = ContextEngineTools(context_config)
+                for tool in context_engine_tools.create_tools():
+                    self.registry.register_tool(tool, "上下文引擎深度")
+                logger.info("上下文引擎工具注册完成")
+
+            # 注册语义智能工具（第一阶段增强）
+            if categories.get("semantic_intelligence", {}).get("enabled", True):
+                semantic_config = categories.get("semantic_intelligence", {}).get(
+                    "settings", {}
+                )
+                # 合并 ChromaDB 配置
+                if self.data_manager:
+                    semantic_config["chromadb_path"] = (
+                        self.data_manager.persist_directory
+                    )
+                semantic_tools = SemanticIntelligenceTools(semantic_config)
+                for tool in semantic_tools.create_tools():
+                    self.registry.register_tool(tool, "语义智能")
+                logger.info("语义智能工具注册完成")
 
             # 注册任务管理工具（第三阶段）
             if categories.get("task_management", {}).get("enabled", True):
@@ -382,7 +490,7 @@ class BasicToolsService(ServiceModule):
                     # 创建所有任务管理相关工具
                     task_tools = create_task_tools(self.data_manager)
                     for tool in task_tools:
-                        self.registry.register_tool(tool)
+                        self.registry.register_tool(tool, "任务管理")
                     logger.info("任务管理工具注册完成")
                 else:
                     logger.warning("数据管理器未初始化，跳过任务管理工具注册")
@@ -392,7 +500,7 @@ class BasicToolsService(ServiceModule):
                 # 注册所有可视化工具（包括新的专门工具）
                 visualization_tools = create_visualization_tools()
                 for tool in visualization_tools:
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "可视化")
 
                 logger.info("可视化工具注册完成")
 
@@ -408,7 +516,7 @@ class BasicToolsService(ServiceModule):
                     memory_tools.set_data_manager(self.data_manager)
 
                 for tool in memory_tools.create_tools():
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "记忆管理")
                 logger.info("记忆管理工具注册完成")
 
             # 注册工具协作框架（第三阶段）
@@ -426,7 +534,7 @@ class BasicToolsService(ServiceModule):
                     collaboration_framework.register_tool(tool_name, tool_instance)
 
                 for tool in collaboration_framework.create_tools():
-                    self.registry.register_tool(tool)
+                    self.registry.register_tool(tool, "工具协作")
                 logger.info("工具协作框架注册完成")
 
         except Exception as e:

@@ -1,0 +1,59 @@
+{
+  "core": {
+    "errors": {
+      "module_not_found": "模块未找到: {module_name}",
+      "tool_not_found": "工具未找到: {tool_name}",
+      "invalid_parameters": "无效参数: {details}",
+      "execution_failed": "执行失败: {error}",
+      "permission_denied": "权限被拒绝: {action}",
+      "rate_limit_exceeded": "速率限制超出: {limit}",
+      "service_unavailable": "服务不可用: {service}",
+      "validation_error": "验证错误: {field}"
+    },
+    "messages": {
+      "module_loaded": "模块已加载: {module_name}",
+      "module_unloaded": "模块已卸载: {module_name}",
+      "tool_executed": "工具已执行: {tool_name}",
+      "service_started": "服务已启动: {service_name}",
+      "service_stopped": "服务已停止: {service_name}",
+      "request_received": "收到请求: {method}",
+      "response_sent": "响应已发送: {status}"
+    }
+  },
+  "protocols": {
+    "jsonrpc": {
+      "invalid_request": "无效的JSON-RPC请求",
+      "method_not_found": "方法未找到: {method}",
+      "invalid_params": "无效参数",
+      "internal_error": "内部错误",
+      "parse_error": "解析错误"
+    },
+    "http": {
+      "invalid_content_type": "无效的内容类型: {content_type}",
+      "method_not_allowed": "方法不被允许: {method}",
+      "cors_blocked": "CORS被阻止",
+      "health_check_ok": "健康检查通过",
+      "server_starting": "HTTP服务器启动中..."
+    }
+  },
+  "tools": {
+    "file": {
+      "file_not_found": "文件未找到: {path}",
+      "permission_denied": "文件权限被拒绝: {path}",
+      "read_success": "文件读取成功: {path}",
+      "write_success": "文件写入成功: {path}"
+    },
+    "network": {
+      "connection_failed": "连接失败: {host}",
+      "timeout": "连接超时: {timeout}s",
+      "request_sent": "请求已发送: {url}",
+      "response_received": "收到响应: {status}"
+    },
+    "semantic": {
+      "code_completion_success": "代码补全成功",
+      "pattern_recognition_success": "模式识别成功",
+      "best_practice_analysis_success": "最佳实践分析成功",
+      "semantic_understanding_success": "语义理解成功"
+    }
+  }
+}

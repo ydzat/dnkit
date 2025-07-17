@@ -110,7 +110,7 @@ class EnhancedFileReader(BaseTool):
     async def execute(self, request: ToolExecutionRequest) -> ToolExecutionResult:
         """执行文件读取"""
         params = request.parameters
-        file_path = params["file_path"]
+        file_path = self._resolve_path(params["file_path"], request)
         encoding = params.get("encoding", "utf-8")
         store_to_chromadb = params.get("store_to_chromadb", True)
         extract_metadata = params.get("extract_metadata", True)

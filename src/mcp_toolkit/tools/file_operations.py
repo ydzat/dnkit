@@ -289,7 +289,7 @@ class ReadFileTool(BaseFileOperationTool):
     async def execute(self, request: ToolExecutionRequest) -> ToolExecutionResult:
         """执行文件读取"""
         params = request.parameters
-        file_path = params["path"]
+        file_path = self._resolve_path(params["path"], request)
         encoding = params.get("encoding", "utf-8")
         max_size = params.get("max_size", 10485760)
         start_line = params.get("start_line")
@@ -515,7 +515,7 @@ class WriteFileTool(BaseFileOperationTool):
     async def execute(self, request: ToolExecutionRequest) -> ToolExecutionResult:
         """执行文件写入"""
         params = request.parameters
-        file_path = params["path"]
+        file_path = self._resolve_path(params["path"], request)
         content = params["content"]
         encoding = params.get("encoding", "utf-8")
         mode = params.get("mode", "create")
@@ -657,7 +657,7 @@ class ListFilesTool(BaseFileOperationTool):
     async def execute(self, request: ToolExecutionRequest) -> ToolExecutionResult:
         """执行文件列表"""
         params = request.parameters
-        directory = params.get("path", ".")
+        directory = self._resolve_path(params.get("path", "."), request)
         recursive = params.get("recursive", False)
         include_hidden = params.get("include_hidden", False)
         pattern = params.get("pattern")
@@ -836,7 +836,7 @@ class CreateDirectoryTool(BaseFileOperationTool):
     async def execute(self, request: ToolExecutionRequest) -> ToolExecutionResult:
         """执行创建目录"""
         params = request.parameters
-        directory = params["path"]
+        directory = self._resolve_path(params["path"], request)
         recursive = params.get("recursive", True)
         permissions = params.get("permissions", "755")
         exist_ok = params.get("exist_ok", True)

@@ -26,6 +26,100 @@ tools:
     context_tools:
       enabled: true
 
+    # Git 集成工具（第一阶段增强）
+    git_integration:
+      enabled: true
+      settings:
+        git_timeout: 30
+        max_diff_size: 1048576  # 1MB
+        create_backup: true
+        verify_context: true
+
+    # 版本管理工具（第一阶段增强）
+    version_management:
+      enabled: true
+      settings:
+        backup_directory: "./mcp_backups"
+        max_history_size: 1000
+        auto_cleanup_days: 7
+        max_checkpoints: 20
+
+    # Agent 自动化工具（第一阶段增强）
+    agent_automation:
+      enabled: true
+      settings:
+        max_suggestions: 10
+        context_window: 5000
+
+    # 智能分析工具（第二阶段）
+    intelligent_analysis:
+      enabled: true
+      settings:
+        analysis_depth: "medium"
+        history_window_days: 30
+
+    # Agent 行为工具（第二阶段）
+    agent_behavior:
+      enabled: true
+      settings:
+        max_state_history: 1000
+        learning_enabled: true
+
+    # 上下文引擎工具（第二阶段）
+    context_engine:
+      enabled: true
+      settings:
+        supported_languages: ["python", "javascript", "typescript", "java", "cpp", "go"]
+        analysis_depth: "deep"
+
+    # 语义智能工具（第三阶段 - 语义理解和智能推荐）
+    semantic_intelligence:
+      enabled: true
+      settings:
+        # 代码补全引擎配置
+        code_completion:
+          max_suggestions: 10
+          context_window: 1000
+          semantic_threshold: 0.7
+          cache_enabled: true
+          cache_ttl: 3600  # 1小时
+
+        # 模式识别器配置
+        pattern_recognition:
+          confidence_threshold: 0.7
+          supported_patterns:
+            - design_patterns
+            - coding_patterns
+            - anti_patterns
+            - performance_patterns
+            - security_patterns
+          analysis_depth: "deep"
+
+        # 最佳实践建议器配置
+        best_practices:
+          priority_levels: ["low", "medium", "high", "critical"]
+          advice_categories:
+            - code_quality
+            - performance
+            - security
+            - maintainability
+            - testing
+          language_specific_rules: true
+
+        # Agent 协作配置
+        agent_collaboration:
+          enabled: true
+          clarification_threshold: 0.6
+          validation_threshold: 0.8
+          max_dialog_rounds: 3
+
+        # 学习适应配置
+        learning:
+          user_behavior_tracking: true
+          project_specific_learning: true
+          feedback_learning: true
+          adaptation_rate: 0.1
+
     # 第三阶段智能化增强工具
     task_management:
       enabled: true

@@ -6,6 +6,7 @@ ChromaDB 统一数据管理器
 """
 
 import json
+import os
 import time
 import uuid
 from typing import Any, Dict, List, Optional
@@ -25,25 +26,50 @@ class UnifiedDataManager:
         """
         self.persist_directory = persist_directory
 
-        # 初始化 ChromaDB 客户端
-        self.client = chromadb.PersistentClient(
-            path=persist_directory,
-            settings=Settings(anonymized_telemetry=False, allow_reset=True),
-        )
+        # 使用现有的目录创建工具确保目录存在
+        self._ensure_directory_exists(persist_directory)
 
-        # 创建或获取统一集合
         try:
-            self.collection = self.client.get_or_create_collection(
-                name="mcp_unified_storage",
-                embedding_function=chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(  # type: ignore
-                    model_name="sentence-transformers/all-MiniLM-L6-v2"
-                ),
+            # 清理可能的锁文件（复用现有逻辑）
+            self._cleanup_lock_files(persist_directory)
+
+            # 初始化 ChromaDB 客户端
+            self.client = chromadb.PersistentClient(
+                path=persist_directory,
+                settings=Settings(anonymized_telemetry=False, allow_reset=True),
             )
-        except Exception as e:
-            # 如果模型下载失败，使用默认嵌入函数
-            self.collection = self.client.get_or_create_collection(
-                name="mcp_unified_storage"
-            )
+
+            # 创建或获取统一集合
+            try:
+                self.collection = self.client.get_or_create_collection(
+                    name="mcp_unified_storage",
+                    embedding_function=chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(  # type: ignore
+                        model_name="sentence-transformers/all-MiniLM-L6-v2"
+                    ),
+                )
+            except Exception:
+                # 如果模型下载失败，使用默认嵌入函数
+                self.collection = self.client.get_or_create_collection(
+                    name="mcp_unified_storage"
+                )
+
+        except Exception as init_error:
+            # 尝试清理并重新初始化（复用现有逻辑）
+            try:
+                self._reset_chromadb_data(persist_directory)
+
+                # 重新初始化
+                self.client = chromadb.PersistentClient(
+                    path=persist_directory,
+                    settings=Settings(anonymized_telemetry=False, allow_reset=True),
+                )
+
+                self.collection = self.client.get_or_create_collection(
+                    name="mcp_unified_storage"
+                )
+
+            except Exception:
+                raise Exception(f"ChromaDB初始化失败: {init_error}")
 
     def store_data(
         self,
@@ -67,10 +93,11 @@ class UnifiedDataManager:
             data_id = f"{data_type}_{uuid.uuid4()}"
 
         # 添加通用元数据
+        current_time = time.time()
         enhanced_metadata = {
             "data_type": data_type,
-            "created_time": time.time(),
-            "updated_time": time.time(),
+            "created_time": current_time,
+            "updated_time": current_time,
             **metadata,
         }
 
@@ -85,10 +112,81 @@ class UnifiedDataManager:
                 self.collection.add(
                     documents=[content], metadatas=[enhanced_metadata], ids=[data_id]
                 )
-            except Exception as inner_e:
-                raise Exception(f"存储数据失败: {str(inner_e)}")
+            except Exception:
+                raise Exception(f"存储数据失败: {str(e)}")
 
         return data_id
+
+    def _reinitialize_database(self) -> None:
+        """重新初始化数据库（简化版）"""
+        try:
+            # 重置客户端
+            if hasattr(self, "client"):
+                try:
+                    self.client.reset()
+                except Exception:
+                    pass  # nosec B110
+
+            # 清理锁文件
+            self._cleanup_lock_files(self.persist_directory)
+
+            # 重新创建客户端和集合
+            self.client = chromadb.PersistentClient(
+                path=self.persist_directory,
+                settings=Settings(anonymized_telemetry=False, allow_reset=True),
+            )
+
+            self.collection = self.client.get_or_create_collection(
+                name="mcp_unified_storage"
+            )
+
+        except Exception as e:
+            raise Exception(f"ChromaDB重新初始化失败: {e}")
+
+    def _ensure_directory_exists(self, directory: str) -> None:
+        """确保目录存在并有正确权限（复用现有逻辑）"""
+        try:
+            # 创建目录
+            os.makedirs(directory, exist_ok=True)
+
+            # 设置基本权限
+            os.chmod(directory, 0o755)  # nosec B103
+
+            # 简单的写权限测试
+            test_file = os.path.join(directory, ".write_test")
+            try:
+                with open(test_file, "w") as f:
+                    f.write("test")
+                os.remove(test_file)
+            except Exception:
+                # 如果写入失败，尝试更宽松的权限
+                os.chmod(directory, 0o777)  # nosec B103
+
+        except Exception as e:
+            raise Exception(f"无法创建或访问ChromaDB目录 {directory}: {e}")
+
+    def _cleanup_lock_files(self, directory: str) -> None:
+        """清理ChromaDB锁文件"""
+        lock_files = [
+            os.path.join(directory, "chroma.sqlite3-wal"),
+            os.path.join(directory, "chroma.sqlite3-shm"),
+            os.path.join(directory, ".lock"),
+        ]
+
+        for lock_file in lock_files:
+            if os.path.exists(lock_file):
+                try:
+                    os.remove(lock_file)
+                except Exception:
+                    pass  # 忽略清理失败 # nosec B110
+
+    def _reset_chromadb_data(self, directory: str) -> None:
+        """重置ChromaDB数据目录"""
+        import shutil
+
+        if os.path.exists(directory):
+            shutil.rmtree(directory)
+        self._ensure_directory_exists(directory)
 
     def query_data(
         self,
@@ -115,15 +213,15 @@ class UnifiedDataManager:
             conditions.append({"data_type": data_type})
 
         if filters:
-            for key, value in filters.items():
-                conditions.append({key: value})
+            conditions.extend([{k: v} for k, v in filters.items()])
 
         # 根据条件数量构建 where 子句
-        where_clause = None
-        if len(conditions) == 1:
-            where_clause = conditions[0]
-        elif len(conditions) > 1:
-            where_clause = {"$and": conditions}
+        where_clause: Optional[Dict[str, Any]] = None
+        if conditions:
+            if len(conditions) == 1:
+                where_clause = conditions[0]
+            else:
+                where_clause = {"$and": conditions}
 
         try:
             return self.collection.query(
@@ -139,6 +237,108 @@ class UnifiedDataManager:
                 "metadatas": [[]],
                 "distances": [[]],
             }
+
+    def search_data(
+        self,
+        query: str,
+        data_types: Optional[List[str]] = None,
+        limit: int = 10,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        """搜索数据（兼容性方法）
+
+        Args:
+            query: 查询文本
+            data_types: 数据类型列表
+            limit: 返回结果数量限制
+            filters: 额外的过滤条件
+
+        Returns:
+            List[Dict]: 搜索结果列表
+        """
+        # 构建过滤条件
+        conditions = []
+
+        if data_types:
+            if len(data_types) == 1:
+                conditions.append({"data_type": data_types[0]})
+            else:
+                # ChromaDB doesn't support $in operator, we'll handle this differently
+                conditions.append(
+                    {"data_type": data_types[0]}
+                )  # Use first type for now
+
+        if filters:
+            conditions.extend([{k: v} for k, v in filters.items()])
+
+        where_clause = None
+        if conditions:
+            # For ChromaDB, we need to use proper where clause format
+            if len(conditions) == 1:
+                where_clause = conditions[0]
+            else:
+                # For multiple conditions, merge them into a single dict
+                # This is a simplified approach for ChromaDB compatibility
+                merged_conditions = {}
+                for condition in conditions:
+                    if isinstance(condition, dict):
+                        merged_conditions.update(condition)
+                where_clause = merged_conditions
+
+        try:
+            # Use direct method call instead of **kwargs to avoid type issues
+            if where_clause:
+                result = self.collection.query(
+                    query_texts=[query],
+                    where=where_clause,  # type: ignore[arg-type]
+                    n_results=limit,
+                )
+            else:
+                result = self.collection.query(
+                    query_texts=[query],
+                    n_results=limit,
+                )
+
+            # 转换为列表格式
+            search_results: List[Dict[str, Any]] = []
+            if result["documents"] and result["documents"][0]:
+                for i in range(len(result["documents"][0])):
+                    # 安全访问可能为空的字段
+                    id_val = (
+                        result["ids"][0][i]
+                        if result["ids"] and result["ids"][0]
+                        else None
+                    )
+                    doc_val = (
+                        result["documents"][0][i]
+                        if result["documents"] and result["documents"][0]
+                        else None
+                    )
+                    meta_val = (
+                        result["metadatas"][0][i]
+                        if result["metadatas"] and result["metadatas"][0]
+                        else None
+                    )
+                    dist_val = (
+                        result["distances"][0][i]
+                        if result["distances"] and result["distances"][0]
+                        else 0.0
+                    )
+
+                    search_results.append(
+                        {
+                            "id": id_val,
+                            "document": doc_val,
+                            "metadata": meta_val,
+                            "distance": dist_val,
+                        }
+                    )
+
+            return search_results
+
+        except Exception as e:
+            print(f"搜索数据失败: {e}")
+            return []
 
     def get_by_id(self, data_id: str) -> Dict[str, Any]:
         """根据ID获取数据

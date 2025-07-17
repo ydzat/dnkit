@@ -225,6 +225,29 @@ class BaseTool(ABC):
             resources_used=resources_used,
         )
 
+    def _resolve_path(self, path: str, request: ToolExecutionRequest) -> str:
+        """解析路径，考虑工作目录"""
+        import os
+
+        # 如果是绝对路径，直接返回
+        if os.path.isabs(path):
+            return path
+
+        # 获取工作目录
+        working_dir = "."
+        if request.execution_context and request.execution_context.working_directory:
+            working_dir = request.execution_context.working_directory
+
+        # 组合路径
+        resolved_path = os.path.join(working_dir, path)
+        return os.path.normpath(resolved_path)
+
+    def _get_working_directory(self, request: ToolExecutionRequest) -> str:
+        """获取工作目录"""
+        if request.execution_context and request.execution_context.working_directory:
+            return request.execution_context.working_directory
+        return "."
+
 
 class ToolRegistry:
     """工具注册中心"""

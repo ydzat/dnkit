@@ -121,6 +121,9 @@ async def start_server(
     # 注册服务到路由器
     await router.register_service(basic_tools_service)
 
+    # 全局串行锁，确保所有工具调用严格顺序
+    tool_call_lock = asyncio.Lock()
+
     # 为两个处理器注册相同的MCP方法
     def setup_jsonrpc_methods(jsonrpc_processor: Any) -> None:
         # MCP初始化方法
@@ -192,15 +195,17 @@ async def start_server(
             # 创建工具调用请求
             from .core.types import ToolCallRequest
 
+            req_id = f"req_{asyncio.get_event_loop().time()}_{id(params)}"
             request = ToolCallRequest(
                 tool_name=tool_name,
                 arguments=arguments,
-                request_id=f"req_{asyncio.get_event_loop().time()}",
+                request_id=req_id,
                 session_id=None,
             )
 
-            # 执行工具调用
-            response = await basic_tools_service.call_tool(request)
+            # 串行化执行
+            async with tool_call_lock:
+                response = await basic_tools_service.call_tool(request)
 
             if response.success:
                 return {"content": [{"type": "text", "text": str(response.result)}]}
